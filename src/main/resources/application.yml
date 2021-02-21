@@ -1,0 +1,14 @@
+micronaut:
+  application:
+    name: test-course-template
+  server:
+    cors:
+      enabled: true
+  security:
+    authentication: bearer
+    token:
+      jwt:
+        signatures:
+          secret:
+            generator:
+              secret: supaDupaSecretThatNobodyWillKnow
