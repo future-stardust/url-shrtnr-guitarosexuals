@@ -34,6 +34,9 @@ you could use:
 - [AdoptOpenJDK] on Windows
 
 ### Checkstyle
+
+O̲ppa̲ (っ-̶●̃益●̶̃)っ ,︵‿ S̲t̲yl̲e̲
+
 We use [checkstyle] to ensure coding standards. We use Google rules (local copy `./config/checkstyle/checkstyle.xml`).
 
 ## How to start development
