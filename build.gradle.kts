@@ -19,7 +19,7 @@ plugins {
   id("me.champeau.gradle.jmh") version "0.5.2"
 }
 
-group = "edu.kpi.softtest"
+group = "GuitaroSexuals"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -36,12 +36,12 @@ micronaut {
   testRuntime("junit5")
   processing {
     incremental(true)
-    annotations("edu.kpi.softtest.*")
+    annotations("*")
   }
 }
 
 application {
-  mainClass.set("edu.kpi.testcourse.Main")
+  mainClass.set("shortener.Main")
 }
 
 // Gradle has built-in support for JUnit 5 test framework

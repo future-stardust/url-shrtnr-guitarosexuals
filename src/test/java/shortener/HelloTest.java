@@ -1,4 +1,4 @@
-package edu.kpi.testcourse;
+package shortener;
 
 import org.junit.jupiter.api.Test;
 
