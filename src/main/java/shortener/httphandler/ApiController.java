@@ -1,11 +1,11 @@
-package shortener.rest;
+package shortener.httphandler;
 
-import shortener.Main;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import shortener.Main;
 
 /**
  * REST API controller that provides logic for Micronaut framework.
@@ -14,11 +14,16 @@ import io.micronaut.security.rules.SecurityRule;
 @Controller
 public class ApiController {
 
-  record ExampleClass(String first, String second) {}
-
+  /**
+  * Example entrypoint.
+  *
+  * @return status of running
+  */
   @Get(value = "/hello", produces = MediaType.APPLICATION_JSON)
   public String hello() {
-    return Main.getGson().toJson(new ExampleClass("Hello", "world!"));
+    String[] args = {"hello", "world"};
+    Main.main(args);
+    return "success";
   }
 
 }
