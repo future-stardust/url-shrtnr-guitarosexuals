@@ -1,6 +1,6 @@
-package edu.kpi.testcourse.rest;
+package shortener.rest;
 
-import edu.kpi.testcourse.Main;
+import shortener.Main;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;

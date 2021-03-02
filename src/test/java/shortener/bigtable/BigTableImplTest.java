@@ -1,4 +1,4 @@
-package edu.kpi.testcourse.bigtable;
+package shortener.bigtable;
 
 import org.junit.jupiter.api.Test;
 

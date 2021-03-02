@@ -1,4 +1,4 @@
-package edu.kpi.testcourse;
+package shortener;
 
 import com.google.gson.Gson;
 import io.micronaut.runtime.Micronaut;

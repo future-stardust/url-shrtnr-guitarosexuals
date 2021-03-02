@@ -1,4 +1,4 @@
-package edu.kpi.testcourse.bigtable;
+package shortener.bigtable;
 
 import java.util.HashMap;
 import java.util.Map;

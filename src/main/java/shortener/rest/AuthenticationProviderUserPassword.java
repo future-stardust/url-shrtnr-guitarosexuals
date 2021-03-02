@@ -1,4 +1,4 @@
-package edu.kpi.testcourse.rest;
+package shortener.rest;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpRequest;

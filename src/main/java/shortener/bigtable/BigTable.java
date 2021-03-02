@@ -1,4 +1,4 @@
-package edu.kpi.testcourse.bigtable;
+package shortener.bigtable;
 
 // ⚠️ Please, pay attention, that you should not use any 3rd party persistence library (e.g. data
 // ⚠️ base, implementation of key-value storage, etc)
