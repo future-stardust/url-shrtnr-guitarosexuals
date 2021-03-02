@@ -10,7 +10,7 @@ import shortener.Main;
 /**
  * REST API controller that provides logic for Micronaut framework.
  */
-@Secured(SecurityRule.IS_AUTHENTICATED)
+@Secured(SecurityRule.IS_ANONYMOUS) // TODO: should be setup in the future
 @Controller
 public class ApiController {
 
@@ -22,8 +22,7 @@ public class ApiController {
   @Get(value = "/hello", produces = MediaType.APPLICATION_JSON)
   public String hello() {
     String[] args = {"hello", "world"};
-    Main.main(args);
-    return "success";
+    return Main.getGson().toJson(args);
   }
 
 }
