@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
  * <p>It creates, connects and starts all system parts.
  */
 public class Main {
+
   private static final Gson gson = new Gson();
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
