@@ -19,11 +19,11 @@ all projects have to have the same high-level structure. Also, this is the reaso
 modify project dependencies.
 
 There are five modules:
-- `httpHandler` - **HTTP Frontend** - Handles HTTP requests, provides REST API
+- `httphandler` - **HTTP Frontend** - Handles HTTP requests, provides REST API
 - `users` - **Users** - Authenticates and manages users
 - `urls` - **URLs** - Operates URLs (creation, usage, removal)
-- `database` - **Database** Handles DB records
-- `databaseDriver` - **Database Driver** - Reads/Writes database's data to system drive
+- `database` - **Database** - Handles DB records
+- `databasedriver` - **Database Driver** - Reads/Writes database's data to system drive
 
 ## Environment prerequisites
 
