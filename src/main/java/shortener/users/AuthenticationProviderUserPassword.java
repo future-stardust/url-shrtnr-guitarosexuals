@@ -1,4 +1,4 @@
-package shortener.rest;
+package shortener.users;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpRequest;
