@@ -5,6 +5,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import javax.inject.Inject;
 import shortener.database.Alias;
 import shortener.urls.UrlsRepository;
 
@@ -15,6 +16,9 @@ import shortener.urls.UrlsRepository;
 @Controller
 public class ApiController {
 
+  @Inject
+  UrlsRepository urlsRepository;
+
   /**
   * Example entrypoint.
   *
@@ -22,8 +26,6 @@ public class ApiController {
   */
   @Get(value = "/hello", produces = MediaType.APPLICATION_JSON)
   public Alias[] hello() {
-    UrlsRepository urlsRepository = UrlsRepository.getInstance();
-
     return urlsRepository.findAll();
   }
 

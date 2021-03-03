@@ -20,10 +20,6 @@ public class UrlsRepository implements Repository<Alias, String> {
     new Alias("alias2", "http://example2.org", 1, 0)
   );
 
-  public static UrlsRepository getInstance() {
-    return BeanContext.run().getBean(UrlsRepository.class);
-  }
-
   @Override
   public Alias[] findAll() {
     return aliases.toArray(new Alias[0]);
