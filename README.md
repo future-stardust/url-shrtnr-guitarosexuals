@@ -23,7 +23,6 @@ There are five modules:
 - `users` - **Users** - Authenticates and manages users
 - `urls` - **URLs** - Operates URLs (creation, usage, removal)
 - `database` - **Database** - Handles all DB operations and file system interaction
-- `databaseconnector` - **Database Connector** - Provides all DB data operations to controllers
 
 ## Environment prerequisites
 
