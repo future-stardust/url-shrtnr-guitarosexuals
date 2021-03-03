@@ -5,7 +5,8 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import shortener.databaseconnector.DatabaseConnector;
+import shortener.database.Alias;
+import shortener.urls.UrlsRepository;
 
 /**
  * REST API controller that provides logic for Micronaut framework.
@@ -20,10 +21,10 @@ public class ApiController {
   * @return status of running
   */
   @Get(value = "/hello", produces = MediaType.APPLICATION_JSON)
-  public String[] hello() {
-    DatabaseConnector dbc = DatabaseConnector.getInstance();
+  public Alias[] hello() {
+    UrlsRepository urlsRepository = UrlsRepository.getInstance();
 
-    return dbc.getHelloWorld();
+    return urlsRepository.findAll();
   }
 
 }
