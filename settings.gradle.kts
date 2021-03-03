@@ -1,2 +1,2 @@
-rootProject.name = "test-course-template"
+rootProject.name = "shortener"
 
