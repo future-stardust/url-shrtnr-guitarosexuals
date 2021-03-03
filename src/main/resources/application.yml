@@ -5,6 +5,10 @@ micronaut:
     cors:
       enabled: true
   security:
+    enabled: true
+    endpoints:
+      login:
+        enabled: true
     authentication: bearer
     token:
       jwt:
@@ -12,3 +16,15 @@ micronaut:
           secret:
             generator:
               secret: supaDupaSecretThatNobodyWillKnow
+              jws-algorithm: HS256
+credentials:
+  users:
+    smith: smith123
+    scott: scott123
+    piomin: piomin123
+    test: test123'
+  roles:
+    smith: ADMIN
+    scott: VIEW
+    piomin: VIEW
+    test: ADMIN
