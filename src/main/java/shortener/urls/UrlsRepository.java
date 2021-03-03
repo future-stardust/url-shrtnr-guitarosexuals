@@ -1,8 +1,7 @@
 package shortener.urls;
 
-import io.micronaut.context.BeanContext;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import javax.inject.Singleton;
 import shortener.database.Alias;
 import shortener.database.Repository;
@@ -15,10 +14,30 @@ import shortener.database.Repository;
 @Singleton
 public class UrlsRepository implements Repository<Alias, String> {
 
-  private final List<Alias> aliases = Arrays.asList(
-    new Alias("alias1", "http://example1.org", 1, 0),
-    new Alias("alias2", "http://example2.org", 1, 0)
-  );
+  private final ArrayList<Alias> aliases;
+
+  /**
+   * Creates UrlsRepository.
+   */
+  public UrlsRepository() {
+    aliases = new ArrayList<>(Arrays.asList(
+      new Alias("alias1", "http://example1.org", 1, 0),
+      new Alias("alias2", "http://example2.org", 1, 0)
+    ));
+  }
+
+  /**
+   * Creates UrlsRepository with predefined mocked data.
+   *
+   * <p>Do not use it as it is a subject to remove!
+   *
+   * <p>TODO: Remove this constructor once db is implemented.
+   *
+   * @param defaultInnerValues Array of mocked data.
+   */
+  public UrlsRepository(Alias[] defaultInnerValues) {
+    aliases = new ArrayList<>(Arrays.asList(defaultInnerValues));
+  }
 
   @Override
   public Alias[] findAll() {
