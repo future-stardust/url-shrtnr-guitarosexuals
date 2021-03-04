@@ -9,17 +9,16 @@ import io.micronaut.security.authentication.AuthenticationResponse;
 import io.micronaut.security.authentication.UserDetails;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
-import java.util.Collections;
 import javax.inject.Inject;
 import org.reactivestreams.Publisher;
 
 /**
  * Basic authentication provider.
  */
-public class AuthenticationProviderUserPassword implements AuthenticationProvider {
+public class DelegatingAuthenticationProvider implements AuthenticationProvider {
 
   @Inject
-  UserRepository store;
+  UserRepository userRepository;
 
   @Override
   public Publisher<AuthenticationResponse> authenticate(
@@ -27,7 +26,7 @@ public class AuthenticationProviderUserPassword implements AuthenticationProvide
       AuthenticationRequest<?, ?> req) {
     String email = req.getIdentity().toString();
     String password = req.getSecret().toString();
-    if (password.equals(store.getUserPassword(email))) {
+    if (password.equals(userRepository.getUserPassword(email))) {
       UserDetails details = new UserDetails(email, new ArrayList<>());
       return Flowable.just(details);
     } else {

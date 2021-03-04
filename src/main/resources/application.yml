@@ -17,9 +17,6 @@ micronaut:
             generator:
               secret: supaDupaSecretThatNobodyWillKnow
               jws-algorithm: HS256
-credentials:
-  users:
-    smith: smith123
-    scott: scott123
-    piomin: piomin123
-    test: test123'
+        generator:
+          access-token:
+            expiration: 86400
