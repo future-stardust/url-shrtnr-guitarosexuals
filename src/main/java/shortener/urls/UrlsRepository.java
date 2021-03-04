@@ -2,6 +2,7 @@ package shortener.urls;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import javax.inject.Singleton;
 import shortener.database.Alias;
 import shortener.database.Repository;
@@ -52,12 +53,19 @@ public class UrlsRepository implements Repository<Alias, String> {
       }
     }
 
-    return null;
+    throw new NoSuchElementException();
   }
 
   @Override
   public Alias insertOne(Alias entity) {
+    for (Alias alias : aliases) {
+      if (alias.alias().equals(entity.alias())) {
+        throw new IllegalArgumentException();
+      }
+    }
+
     aliases.add(entity);
+
     return entity;
   }
 
@@ -70,6 +78,6 @@ public class UrlsRepository implements Repository<Alias, String> {
       }
     }
 
-    return null;
+    throw new NoSuchElementException();
   }
 }
