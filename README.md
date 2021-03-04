@@ -22,8 +22,7 @@ There are five modules:
 - `httphandler` - **HTTP Frontend** - Handles HTTP requests, provides REST API
 - `users` - **Users** - Authenticates and manages users
 - `urls` - **URLs** - Operates URLs (creation, usage, removal)
-- `database` - **Database** - Handles DB records
-- `databasedriver` - **Database Driver** - Reads/Writes database's data to system drive
+- `database` - **Database** - Handles all DB operations and file system interaction
 
 ## Environment prerequisites
 

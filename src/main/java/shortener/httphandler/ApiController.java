@@ -5,7 +5,9 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import shortener.Main;
+import javax.inject.Inject;
+import shortener.database.Alias;
+import shortener.urls.UrlsRepository;
 
 /**
  * REST API controller that provides logic for Micronaut framework.
@@ -14,15 +16,17 @@ import shortener.Main;
 @Controller
 public class ApiController {
 
+  @Inject
+  UrlsRepository urlsRepository;
+
   /**
   * Example entrypoint.
   *
   * @return status of running
   */
   @Get(value = "/hello", produces = MediaType.APPLICATION_JSON)
-  public String hello() {
-    String[] args = {"hello", "world"};
-    return Main.getGson().toJson(args);
+  public Alias[] hello() {
+    return urlsRepository.search();
   }
 
 }
