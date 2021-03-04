@@ -14,7 +14,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    *
    * @return Array of all found records.
    */
-  EntityT[] findAll();
+  EntityT[] search();
 
   /**
    * Finds a record by a given primary key value.
@@ -23,7 +23,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    * @return Found record.
    * @throws NoSuchElementException Thrown if no element found by given `pk`.
    */
-  EntityT findOneByPrimaryKey(PrimaryKeyT pk) throws NoSuchElementException;
+  EntityT get(PrimaryKeyT pk) throws NoSuchElementException;
 
   /**
    * Method responsible for inserting a record to into a table.
@@ -32,7 +32,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    * @return Created record.
    * @throws IllegalArgumentException Thrown if there is an existing record with same pk found.
    */
-  EntityT insertOne(EntityT record) throws IllegalArgumentException;
+  EntityT create(EntityT record) throws IllegalArgumentException;
 
   /**
    * Removes a record by a given primary key value.
@@ -41,5 +41,5 @@ public interface Repository<EntityT, PrimaryKeyT> {
    * @return Removed record.
    * @throws NoSuchElementException Thrown if no element found by given `pk`.
    */
-  EntityT deleteOneByPrimaryKey(PrimaryKeyT pk) throws NoSuchElementException;
+  EntityT delete(PrimaryKeyT pk) throws NoSuchElementException;
 }

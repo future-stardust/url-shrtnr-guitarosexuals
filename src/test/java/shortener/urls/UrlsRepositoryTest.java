@@ -19,7 +19,7 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.findAll()).hasSize(2);
+    assertThat(urlsRepository.search()).hasSize(2);
   }
 
   @Test
@@ -29,7 +29,7 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.findOneByPrimaryKey("test-alias1")).isNotNull();
+    assertThat(urlsRepository.get("test-alias1")).isNotNull();
   }
 
   @Test
@@ -39,7 +39,7 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.findOneByPrimaryKey("whoops")).isNull();
+    assertThat(urlsRepository.get("whoops")).isNull();
   }
 
   @Test
@@ -49,12 +49,12 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.findOneByPrimaryKey("new-alias")).isNull();
+    assertThat(urlsRepository.get("new-alias")).isNull();
 
 
-    urlsRepository.insertOne(new Alias("new-alias", "http://newexample.org", 1, 0));
+    urlsRepository.create(new Alias("new-alias", "http://newexample.org", 1, 0));
 
-    assertThat(urlsRepository.findOneByPrimaryKey("new-alias")).isNotNull();
+    assertThat(urlsRepository.get("new-alias")).isNotNull();
   }
 
   @Test
@@ -64,8 +64,8 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.deleteOneByPrimaryKey("test-alias1")).isNotNull();
-    assertThat(urlsRepository.findAll()).hasSize(1);
+    assertThat(urlsRepository.delete("test-alias1")).isNotNull();
+    assertThat(urlsRepository.search()).hasSize(1);
   }
 
   @Test
@@ -75,7 +75,7 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.deleteOneByPrimaryKey("whoops")).isNull();
+    assertThat(urlsRepository.delete("whoops")).isNull();
   }
 
 }

@@ -26,7 +26,7 @@ public class ApiController {
   */
   @Get(value = "/hello", produces = MediaType.APPLICATION_JSON)
   public Alias[] hello() {
-    return urlsRepository.findAll();
+    return urlsRepository.search();
   }
 
 }

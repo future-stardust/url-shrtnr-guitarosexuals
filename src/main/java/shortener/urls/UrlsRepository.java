@@ -41,12 +41,12 @@ public class UrlsRepository implements Repository<Alias, String> {
   }
 
   @Override
-  public Alias[] findAll() {
+  public Alias[] search() {
     return aliases.toArray(new Alias[0]);
   }
 
   @Override
-  public Alias findOneByPrimaryKey(String pk) {
+  public Alias get(String pk) {
     for (Alias alias : aliases) {
       if (alias.alias().equals(pk)) {
         return alias;
@@ -57,7 +57,7 @@ public class UrlsRepository implements Repository<Alias, String> {
   }
 
   @Override
-  public Alias insertOne(Alias entity) {
+  public Alias create(Alias entity) {
     for (Alias alias : aliases) {
       if (alias.alias().equals(entity.alias())) {
         throw new IllegalArgumentException();
@@ -70,7 +70,7 @@ public class UrlsRepository implements Repository<Alias, String> {
   }
 
   @Override
-  public Alias deleteOneByPrimaryKey(String pk) {
+  public Alias delete(String pk) {
     for (Alias alias : aliases) {
       if (alias.alias().equals(pk)) {
         aliases.remove(alias);
