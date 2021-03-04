@@ -1,7 +1,9 @@
 package shortener.urls;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import shortener.database.Alias;
 
@@ -13,7 +15,7 @@ import shortener.database.Alias;
 public class UrlsRepositoryTest {
 
   @Test
-  void findAllReturnsArrayOfAliases() {
+  void searchReturnsArrayOfAliases() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
       new Alias("test-alias1", "http://example1.org", 1, 0),
       new Alias("test-alias2", "http://example2.org", 1, 0)
@@ -23,7 +25,7 @@ public class UrlsRepositoryTest {
   }
 
   @Test
-  void findOneByPrimaryKeyReturnsRecordIfFound() {
+  void getReturnsRecordIfFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
       new Alias("test-alias1", "http://example1.org", 1, 0),
       new Alias("test-alias2", "http://example2.org", 1, 0)
@@ -33,13 +35,14 @@ public class UrlsRepositoryTest {
   }
 
   @Test
-  void findOneByPrimaryKeyReturnsNullIfRecordNotFound() {
+  void getThrowsIfRecordNotFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
       new Alias("test-alias1", "http://example1.org", 1, 0),
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.get("whoops")).isNull();
+    assertThatThrownBy(() -> urlsRepository.get("whoops"),
+      String.valueOf(NoSuchElementException.class));
   }
 
   @Test
@@ -49,8 +52,8 @@ public class UrlsRepositoryTest {
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.get("new-alias")).isNull();
-
+    assertThatThrownBy(() -> urlsRepository.get("new-alias"),
+      String.valueOf(NoSuchElementException.class));
 
     urlsRepository.create(new Alias("new-alias", "http://newexample.org", 1, 0));
 
@@ -58,7 +61,7 @@ public class UrlsRepositoryTest {
   }
 
   @Test
-  void deleteOneByPrimaryKeyDeletesRecordIfFound() {
+  void deleteRemovesRecordIfFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
       new Alias("test-alias1", "http://example1.org", 1, 0),
       new Alias("test-alias2", "http://example2.org", 1, 0)
@@ -69,13 +72,14 @@ public class UrlsRepositoryTest {
   }
 
   @Test
-  void deleteOneByPrimaryKeyReturnsNullIfNotFound() {
+  void deleteThrowsIfRecordNotFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
       new Alias("test-alias1", "http://example1.org", 1, 0),
       new Alias("test-alias2", "http://example2.org", 1, 0)
     });
 
-    assertThat(urlsRepository.delete("whoops")).isNull();
+    assertThatThrownBy(() -> urlsRepository.delete("whoops"),
+      String.valueOf(NoSuchElementException.class));
   }
 
 }
