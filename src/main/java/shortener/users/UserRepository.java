@@ -30,6 +30,22 @@ class UserRepository implements Repository<User, Integer> {
     emailUserHashMap.put(testUser2.email(), testUser2);
   }
 
+  /**
+   * Constructor provided for testing purposes.
+   * TODO: remove it in the future
+   *
+   * @param initialUserList user data
+   */
+  public UserRepository(User[] initialUserList) {
+    idUserHashMap = new HashMap<>();
+    emailUserHashMap = new HashMap<>();
+
+    for (User user : initialUserList) {
+      idUserHashMap.put(user.id(), user);
+      emailUserHashMap.put(user.email(), user);
+    }
+  }
+
   @Override
   public User[] search() {
     return idUserHashMap.values().toArray(new User[0]);
