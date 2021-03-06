@@ -41,7 +41,7 @@ public class ApiController {
    * @return OK/error
    */
   @Post(value = "/urls/shorten", consumes = MediaType.APPLICATION_JSON)
-  public HttpResponse<Object> createShortenLink(@Body String shortenData) {
+  public HttpResponse<Object> shortenUrl(@Body String shortenData) {
     return HttpResponse.ok();
   }
 
@@ -51,7 +51,7 @@ public class ApiController {
    * @return user's url array
    */
   @Get(value = "/urls", produces = MediaType.APPLICATION_JSON)
-  public String[] getUserUrlArray() {
+  public String[] getUserUrls() {
     return new String[]{"Url array"};
   }
 
@@ -62,7 +62,7 @@ public class ApiController {
    * @return OK/error
    */
   @Delete(value = "/urls/{alias}")
-  public HttpResponse<Object> deleteShortenedLink(@QueryValue String alias) {
+  public HttpResponse<Object> deleteUrl(@QueryValue String alias) {
     return HttpResponse.ok();
   }
 }

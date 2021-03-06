@@ -21,7 +21,7 @@ public class ApiControllerTest {
   HttpClient client;
 
   @Test
-  void createShortenLinkTest() {
+  void shortenUrlTest() {
     String uri = "/urls/shorten";
     String body = "{ 'test': 'there should be url and alias instead' }";
 
@@ -32,7 +32,7 @@ public class ApiControllerTest {
   }
 
   @Test
-  void getUserUrlArray() {
+  void getUserUrlsTest() {
     String uri = "/urls";
 
     String response = client.toBlocking()
@@ -42,7 +42,7 @@ public class ApiControllerTest {
   }
 
   @Test
-  void deleteShortenedLinkTest() {
+  void deleteUrlTest() {
     String uri = "/urls/someAlias";
 
     int statusCode = client.toBlocking()
