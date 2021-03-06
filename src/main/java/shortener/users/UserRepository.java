@@ -32,7 +32,7 @@ class UserRepository implements Repository<User, Integer> {
 
   @Override
   public User[] search() {
-    return (User[]) idUserHashMap.values().toArray();
+    return idUserHashMap.values().toArray(new User[0]);
   }
 
   @Override
@@ -47,13 +47,25 @@ class UserRepository implements Repository<User, Integer> {
         String.format("User with the specified pk (%d) not found", pk));
   }
 
+  public User get(String email) throws NoSuchElementException {
+    User user = emailUserHashMap.get(email);
+    if (user == null) {
+      throw new NoSuchElementException(
+          String.format("User with the specified email (%s) not found", email));
+    }
+
+    return user;
+  }
+
   @Override
   public User create(User record) throws IllegalArgumentException {
     if (idUserHashMap.containsKey(record.id()) || emailUserHashMap.containsKey(record.email())) {
       throw new IllegalArgumentException("The specified value already exists");
     }
     idUserHashMap.put(record.id(), record);
-    return emailUserHashMap.put(record.email(), record);
+    emailUserHashMap.put(record.email(), record);
+
+    return record;
   }
 
   @Override
@@ -75,13 +87,7 @@ class UserRepository implements Repository<User, Integer> {
     return idUserHashMap.remove(userToDelete.id());
   }
 
-  public String getUserPassword(String email) throws NoSuchElementException {
-    User user = emailUserHashMap.get(email);
-    if (user == null) {
-      throw new NoSuchElementException(
-          String.format("User with the specified email (%s) not found", email));
-    }
-
-    return user.password();
+  public String getUserPassword(String email) {
+    return get(email).password();
   }
 }
