@@ -36,6 +36,8 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
    *
    * @param httpRequest HTTP request reference
    * @param authenticationRequest Authentication credentials to validate
+   *
+   * @return JWT or authentication exception
    */
   @Override
   public Publisher<AuthenticationResponse> authenticate(@Nullable HttpRequest<?> httpRequest,
@@ -47,7 +49,7 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
       try {
         final String userPassword = userRepository.getUserPassword(entryEmail);
 
-        if (entryPassword.equals(userPassword)) {
+        if (entryPassword.equals(userPassword)) { // TODO: provide password protection functionality
           final UserDetails userDetails = new UserDetails(entryEmail,
               new ArrayList<>(Collections.singletonList("USER")));
 
