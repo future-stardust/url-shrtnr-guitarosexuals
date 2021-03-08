@@ -12,7 +12,7 @@ import shortener.database.User;
  * <p>TODO: Replace mocked data with actual db interaction.
  */
 @Singleton
-class UserRepository implements Repository<User, Integer> {
+public class UserRepository implements Repository<User, Integer> {
 
   // TODO: solve the issue with hashmaps
   private final HashMap<Integer, User> idUserHashMap;
