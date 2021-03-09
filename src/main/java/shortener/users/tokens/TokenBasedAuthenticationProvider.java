@@ -1,4 +1,4 @@
-package shortener.users;
+package shortener.users.tokens;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import io.micronaut.http.HttpRequest;
@@ -18,6 +18,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.Email;
 import org.reactivestreams.Publisher;
+import shortener.users.UserRepository;
 
 /**
  * JWT-based authentication provider.

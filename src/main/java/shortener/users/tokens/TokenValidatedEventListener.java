@@ -1,4 +1,4 @@
-package shortener.users;
+package shortener.users.tokens;
 
 import io.micronaut.context.event.ApplicationEventListener;
 import io.micronaut.security.event.TokenValidatedEvent;
@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import shortener.exceptions.auth.InvalidToken;
-import shortener.httphandler.UserSessionRepository;
+import shortener.users.UserSessionRepository;
 
 /**
  * Listener of TokenValidatedEvent, provided for checking if a token exists in active sessions.

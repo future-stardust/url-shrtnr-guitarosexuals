@@ -19,6 +19,9 @@ public class UserRepository implements Repository<User, Integer> {
   private final HashMap<String, User> emailUserHashMap;
   private int nextId;
 
+  /**
+   * UserRepository constructor.
+   */
   public UserRepository() {
     idUserHashMap = new HashMap<>();
     emailUserHashMap = new HashMap<>();
@@ -64,6 +67,13 @@ public class UserRepository implements Repository<User, Integer> {
         String.format("User with the specified pk (%d) not found", pk));
   }
 
+  /**
+   * Method for getting User record by email field.
+   *
+   * @param email email string
+   * @return User object with specified email
+   * @throws NoSuchElementException if such user not found
+   */
   public User get(String email) throws NoSuchElementException {
     User user = emailUserHashMap.get(email);
     if (user == null) {
@@ -85,6 +95,14 @@ public class UserRepository implements Repository<User, Integer> {
     return record;
   }
 
+  /**
+   * Method for creating new User record with specified user data. Unlike create(User record), this
+   * method includes ID generation.
+   *
+   * @param email    email of new user
+   * @param password password of new user
+   * @return created user record
+   */
   public User create(String email, String password) {
     if (emailUserHashMap.containsKey(email)) {
       throw new IllegalArgumentException("The specified value already exists");
@@ -107,6 +125,13 @@ public class UserRepository implements Repository<User, Integer> {
     return emailUserHashMap.remove(userToDelete.email());
   }
 
+  /**
+   * Method for deleting user record by email field.
+   *
+   * @param email email of user to be deleted
+   * @return deleted user record
+   * @throws NoSuchElementException if such user not found
+   */
   public User delete(String email) throws NoSuchElementException {
     User userToDelete = emailUserHashMap.remove(email);
     if (userToDelete == null) {

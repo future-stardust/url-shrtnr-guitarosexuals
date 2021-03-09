@@ -1,4 +1,4 @@
-package shortener.httphandler;
+package shortener.users.tokens;
 
 import io.micronaut.context.annotation.Replaces;
 import io.micronaut.http.HttpRequest;
@@ -14,9 +14,10 @@ import javax.inject.Singleton;
 import shortener.database.User;
 import shortener.database.UserSession;
 import shortener.users.UserRepository;
+import shortener.users.UserSessionRepository;
 
 /**
- * Access token handler.
+ * AccessRefreshTokenLoginHandler extension for creating user sessions.
  *
  * @author Maksym Hubenko
  * @author Andrew Krivonos
@@ -25,8 +26,10 @@ import shortener.users.UserRepository;
 @Singleton
 public class AccessTokenHandler extends AccessRefreshTokenLoginHandler {
 
-  @Inject UserRepository userRepository;
-  @Inject UserSessionRepository userSessionRepository;
+  @Inject
+  UserRepository userRepository;
+  @Inject
+  UserSessionRepository userSessionRepository;
 
   /**
    * Class constructor for AccessTokenHandler.
@@ -38,7 +41,8 @@ public class AccessTokenHandler extends AccessRefreshTokenLoginHandler {
   }
 
   /**
-   * Login success handler that provides access token manipulation possibilities.
+   * Login success handler. Used for saving access token to active sessions after user
+   * authentication
    *
    * @param userDetails Details of the serviced user
    * @param httpRequest HTTP request reference

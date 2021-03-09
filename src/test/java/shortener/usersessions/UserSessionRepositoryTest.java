@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.database.UserSession;
-import shortener.httphandler.UserSessionRepository;
+import shortener.users.UserSessionRepository;
 
 @MicronautTest
 public class UserSessionRepositoryTest {

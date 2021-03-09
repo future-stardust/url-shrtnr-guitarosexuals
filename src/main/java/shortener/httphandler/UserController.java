@@ -1,5 +1,6 @@
 package shortener.httphandler;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpResponse;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.users.UserRepository;
+import shortener.users.UserSessionRepository;
 
 /**
  * REST API Controller with entrypoints related to user.
@@ -26,9 +28,8 @@ public class UserController {
   @Inject
   UserSessionRepository userSessionRepository;
 
-
-  record UserData(@JsonProperty("email") String email,
-                  @JsonProperty("password") String password) {
+  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+  record UserData(String email, String password) {
 
   }
 
