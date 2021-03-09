@@ -17,10 +17,12 @@ public class UserRepository implements Repository<User, Integer> {
   // TODO: solve the issue with hashmaps
   private final HashMap<Integer, User> idUserHashMap;
   private final HashMap<String, User> emailUserHashMap;
+  private int nextId;
 
   public UserRepository() {
     idUserHashMap = new HashMap<>();
     emailUserHashMap = new HashMap<>();
+    nextId = 3; // TODO: nextId init
     User testUser1 = new User(1, "drew@ex.com", "qwerty123");
     User testUser2 = new User(2, "max@mail.ru", "lolpasswd");
 
@@ -31,8 +33,7 @@ public class UserRepository implements Repository<User, Integer> {
   }
 
   /**
-   * Constructor provided for testing purposes.
-   * TODO: remove it in the future
+   * Constructor provided for testing purposes. TODO: remove it in the future
    *
    * @param initialUserList user data
    */
@@ -82,6 +83,18 @@ public class UserRepository implements Repository<User, Integer> {
     emailUserHashMap.put(record.email(), record);
 
     return record;
+  }
+
+  public User create(String email, String password) {
+    if (emailUserHashMap.containsKey(email)) {
+      throw new IllegalArgumentException("The specified value already exists");
+    }
+    User newUser = new User(nextId++, email, password);
+
+    idUserHashMap.put(newUser.id(), newUser);
+    emailUserHashMap.put(newUser.email(), newUser);
+
+    return newUser;
   }
 
   @Override

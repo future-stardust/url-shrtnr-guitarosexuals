@@ -10,11 +10,9 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import io.micronaut.validation.validator.constraints.EmailValidator;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
-import shortener.database.User;
 import shortener.users.UserRepository;
 
 /**
@@ -44,7 +42,6 @@ public class UserController {
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
   public HttpResponse<String> signup(@Body UserData userData) {
-    // TODO: add verification
     if (userData.email == null || userData.password == null) {
       return HttpResponse.badRequest("Credentials should not be empty.");
     }
@@ -77,7 +74,7 @@ public class UserController {
       return HttpResponse.badRequest("Password must contain at least one number.");
     }
 
-    userRepository.create(new User(666, userEmail, userPassword));
+    userRepository.create(userEmail, userPassword);
     return HttpResponse.created("User successfully created");
   }
 
