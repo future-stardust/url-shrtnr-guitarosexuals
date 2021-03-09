@@ -17,9 +17,9 @@ import shortener.urls.UrlsRepository;
 /**
  * REST API controller that provides logic for Micronaut framework.
  */
-@Secured(SecurityRule.IS_AUTHENTICATED) // TODO: should be setup in the future
-@Controller
-public class ApiController {
+@Secured(SecurityRule.IS_AUTHENTICATED)
+@Controller("/urls")
+public class UrlController {
 
   @Inject
   UrlsRepository urlsRepository;
