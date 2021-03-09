@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
@@ -14,6 +15,7 @@ import io.micronaut.security.rules.SecurityRule;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
+import shortener.exceptions.auth.InvalidCredentials;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
 
@@ -29,16 +31,43 @@ public class UserController {
   UserSessionRepository userSessionRepository;
 
   @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  record UserData(String email, String password) {
+  record UserData(@JsonProperty("email") String email, @JsonProperty("password") String password) {
 
+    public void validate() {
+      if (!email.matches(
+          "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
+        throw new InvalidCredentials("Invalid email address.");
+      }
+
+      if (password.length() < 8) {
+        throw new InvalidCredentials("Password must be at least 8 characters long.");
+      }
+
+      if (password.length() > 16) {
+        throw new InvalidCredentials("Password must be no longer than 16 characters.");
+      }
+
+      if (!password.matches("(.*[A-Z].*)")) {
+        throw new InvalidCredentials("Password must contain at least one uppercase character.");
+      }
+
+      if (!password.matches("(.*[a-z].*)")) {
+        throw new InvalidCredentials("Password must contain at least one lowercase character.");
+      }
+
+      if (!password.matches("(.*[0-9].*)")) {
+        throw new InvalidCredentials("Password must contain at least one number.");
+      }
+    }
   }
 
   /**
    * Sign Up entrypoint. Provides user registration in the system.
    *
    * @param userData json with credentials (email and password)
-   * @return 201 Created - is user created<br> 400 Bad Request - is credentials are wrong<br> 409
-   *             Conflict - is user already exists
+   * @return  201 Created - if user created<br>
+   *          400 Bad Request - if credentials are wrong<br>
+   *          409 Conflict - if user already exists
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
@@ -50,44 +79,33 @@ public class UserController {
     final @Email String userEmail = userData.email;
     final String userPassword = userData.password;
 
-    if (!userEmail.matches(
-        "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
-      return HttpResponse.badRequest("Invalid email address.");
+    try {
+      userData.validate();
+    } catch (InvalidCredentials e) {
+      return HttpResponse.badRequest(e.getMessage());
     }
 
-    if (userPassword.length() < 8) {
-      return HttpResponse.badRequest("Password must be at least 8 characters long.");
+    try {
+      userRepository.create(userEmail, userPassword);
+    } catch (IllegalArgumentException e) {
+      return HttpResponse.status(HttpStatus.CONFLICT).body(
+          String.format("User %s has already been registered", userEmail)
+      );
     }
 
-    if (userPassword.length() > 16) {
-      return HttpResponse.badRequest("Password must be no longer than 16 characters.");
-    }
-
-    if (!userPassword.matches("(.*[A-Z].*)")) {
-      return HttpResponse.badRequest("Password must contain at least one uppercase character.");
-    }
-
-    if (!userPassword.matches("(.*[a-z].*)")) {
-      return HttpResponse.badRequest("Password must contain at least one lowercase character.");
-    }
-
-    if (!userPassword.matches("(.*[0-9].*)")) {
-      return HttpResponse.badRequest("Password must contain at least one number.");
-    }
-
-    userRepository.create(userEmail, userPassword);
-    return HttpResponse.created("User successfully created");
+    return HttpResponse.created("User successfully registered");
   }
 
   /**
    * Sign out endpoint. Provides user logout from the system
    *
    * @param httpHeaders HTTP headers reference
-   * @return TODO
+   * @return  200 if user logged out<br>
+   *          500 if something went wrong with token
    */
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Get(value = "/signout")
-  public HttpResponse<String> signOut(HttpHeaders httpHeaders) {
+  public HttpResponse<String> signout(HttpHeaders httpHeaders) {
     Optional<String> authorizationHeaderOptional = httpHeaders.getAuthorization();
 
     if (authorizationHeaderOptional.isPresent()) {
