@@ -91,6 +91,8 @@ public class UserController {
 
     if (authorizationHeaderOptional.isPresent()) {
       String accessToken = authorizationHeaderOptional.get().replace("Bearer ", "");
+      userSessionRepository.delete(accessToken);
+      return HttpResponse.ok("Successfully logged out");
     }
 
     return HttpResponse.serverError("An error occurred while trying to sign out.");
