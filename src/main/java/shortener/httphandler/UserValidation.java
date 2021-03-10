@@ -6,14 +6,16 @@ import shortener.exceptions.auth.InvalidCredentials;
 /**
  * Temporary container class for credentials. Provides auto json parsing and data validation
  */
-public record UserData(@JsonProperty("email") String email,
-                       @JsonProperty("password") String password) {
+public record UserValidation(@JsonProperty("email") String email,
+                             @JsonProperty("password") String password) {
 
   private static final String EMAIL_ADDRESS_PATTERN =
       "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
   private static final String PASSWORD_UPPERCASE_PATTERN = "(.*[A-Z].*)";
   private static final String PASSWORD_LOWERCASE_PATTERN = "(.*[a-z].*)";
   private static final String PASSWORD_NUMBER_PATTERN = "(.*[0-9].*)";
+  private static final Integer PASSWORD_MIN_LENGTH = 8;
+  private static final Integer PASSWORD_MAX_LENGTH = 20;
 
   /**
    * Credentials validation method. Used to check contained fields for compliance with the
@@ -24,12 +26,14 @@ public record UserData(@JsonProperty("email") String email,
       throw new InvalidCredentials("Invalid email address.");
     }
 
-    if (password.length() < 8) {
-      throw new InvalidCredentials("Password must be at least 8 characters long.");
+    if (password.length() < PASSWORD_MIN_LENGTH) {
+      throw new InvalidCredentials(
+        String.format("Password must be at least %s characters long.", PASSWORD_MIN_LENGTH));
     }
 
-    if (password.length() > 16) {
-      throw new InvalidCredentials("Password must be no longer than 16 characters.");
+    if (password.length() > PASSWORD_MAX_LENGTH) {
+      throw new InvalidCredentials(
+        String.format("Password must be no longer than %s characters.", PASSWORD_MAX_LENGTH));
     }
 
     if (!password.matches(PASSWORD_UPPERCASE_PATTERN)) {
