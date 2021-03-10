@@ -5,6 +5,11 @@ micronaut:
     cors:
       enabled: true
   security:
+    enabled: true
+    endpoints:
+      login:
+        enabled: true
+        path: /users/signin
     authentication: bearer
     token:
       jwt:
@@ -12,3 +17,7 @@ micronaut:
           secret:
             generator:
               secret: supaDupaSecretThatNobodyWillKnow
+              jws-algorithm: HS256
+        generator:
+          access-token:
+            expiration: 86400
