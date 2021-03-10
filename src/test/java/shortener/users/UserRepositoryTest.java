@@ -8,7 +8,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import shortener.database.User;
+import shortener.database.entities.User;
 
 @MicronautTest
 public class UserRepositoryTest {

@@ -1,4 +1,4 @@
-package shortener.database;
+package shortener.database.entities;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 

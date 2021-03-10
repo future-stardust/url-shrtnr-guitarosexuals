@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import javax.inject.Singleton;
-import shortener.database.Alias;
+import shortener.database.entities.Alias;
 import shortener.database.Repository;
 
 /**

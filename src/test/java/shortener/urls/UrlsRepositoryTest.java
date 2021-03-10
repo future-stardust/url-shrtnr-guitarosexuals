@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
-import shortener.database.Alias;
+import shortener.database.entities.Alias;
 
 /**
  * A test suite for UrlsRepository class.
