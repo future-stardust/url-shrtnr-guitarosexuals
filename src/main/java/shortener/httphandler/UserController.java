@@ -1,7 +1,5 @@
 package shortener.httphandler;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
@@ -30,37 +28,6 @@ public class UserController {
   @Inject
   UserSessionRepository userSessionRepository;
 
-  @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-  record UserData(@JsonProperty("email") String email, @JsonProperty("password") String password) {
-
-    public void validate() {
-      if (!email.matches(
-          "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$")) {
-        throw new InvalidCredentials("Invalid email address.");
-      }
-
-      if (password.length() < 8) {
-        throw new InvalidCredentials("Password must be at least 8 characters long.");
-      }
-
-      if (password.length() > 16) {
-        throw new InvalidCredentials("Password must be no longer than 16 characters.");
-      }
-
-      if (!password.matches("(.*[A-Z].*)")) {
-        throw new InvalidCredentials("Password must contain at least one uppercase character.");
-      }
-
-      if (!password.matches("(.*[a-z].*)")) {
-        throw new InvalidCredentials("Password must contain at least one lowercase character.");
-      }
-
-      if (!password.matches("(.*[0-9].*)")) {
-        throw new InvalidCredentials("Password must contain at least one number.");
-      }
-    }
-  }
-
   /**
    * Sign Up entrypoint. Provides user registration in the system.
    *
@@ -72,12 +39,12 @@ public class UserController {
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
   public HttpResponse<String> signup(@Body UserData userData) {
-    if (userData.email == null || userData.password == null) {
+    if (userData.email() == null || userData.password() == null) {
       return HttpResponse.badRequest("Credentials should not be empty.");
     }
 
-    final @Email String userEmail = userData.email;
-    final String userPassword = userData.password;
+    final @Email String userEmail = userData.email();
+    final String userPassword = userData.password();
 
     try {
       userData.validate();
