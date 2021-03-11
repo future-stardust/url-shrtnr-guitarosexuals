@@ -6,12 +6,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
-import shortener.database.entities.UserAlias;
 import shortener.database.tables.AliasTable;
 import shortener.database.tables.DatabaseTable;
 import shortener.database.tables.UserAliasTable;
@@ -105,7 +103,6 @@ public class Database {
         .collect(Collectors.toList());
   }
 
-
   /**
    * Searches through the database table and filters records by the provided `predicate`.
    *
@@ -123,7 +120,6 @@ public class Database {
         .filter(predicate)
         .collect(Collectors.toList());
   }
-
 
   /**
    * Searches through the database table and filters records by the provided `predicate` and
@@ -147,7 +143,6 @@ public class Database {
         .collect(Collectors.toList());
   }
 
-
   /**
    * Returns a record selected by the provided `pk`.
    *
@@ -164,18 +159,6 @@ public class Database {
       throws NoSuchElementException, IOException {
     Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
-    // Apply search optimization if the pk has Long type since we have incremental id
-    if (pk instanceof Long) {
-      Optional<EntityT> record = databaseTable.readTable().skip((Long) pk - 1)
-          .findFirst()
-          .filter(line -> lineRegex.matcher(line).matches())
-          .map(databaseTable::deserialize);
-
-      if (record.isPresent()) {
-        return record.get();
-      }
-    }
-
     return databaseTable.readTable()
         .filter(line -> lineRegex.matcher(line).matches())
         .findFirst()
@@ -185,7 +168,6 @@ public class Database {
                 + "\""));
 
   }
-
 
   /**
    * Inserts a provided `recordToCreate` into the provided `databaseTable` and generates a primary
@@ -212,7 +194,6 @@ public class Database {
     return recordToSave;
   }
 
-
   /**
    * Deletes a record from the `databaseTable` by the provided `pk`.
    *
@@ -228,25 +209,19 @@ public class Database {
                                                PrimaryKeyT pk)
       throws NoSuchElementException, IOException {
 
-    // TODO: Implement delete functionality and all logic related to it in `search`, `get`
-    //  and `create` methods
-    // Possible implementation:
-    //
-    //    // Check if the record exists
-    //    EntityT record = get(databaseTable, pk);
+    // Check if the record exists
+    final EntityT record = get(databaseTable, pk);
 
-    //    Stream<String> lines = databaseTable.readTable(pk);
-    //    Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
-    //
-    //    Optional<String> modifiedLines = databaseTable.readTable(pk).map(line -> {
-    //      if (lineRegex.matcher(line).matches()) {
-    //        return line + SEPARATOR + "deleted";
-    //      }
-    //
-    //      return line;
-    //    }).reduce((acc, line) -> acc + System.lineSeparator() + line);
+    Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
-    return null;
+    String modifiedLines =
+        databaseTable.readTable().filter(line -> !lineRegex.matcher(line).matches())
+            .reduce((acc, line) -> acc + System.lineSeparator() + line).orElse("");
+
+    Files.write(databaseTable.getWritableFilePath(), modifiedLines.getBytes(),
+        StandardOpenOption.TRUNCATE_EXISTING);
+
+    return record;
   }
 
 }

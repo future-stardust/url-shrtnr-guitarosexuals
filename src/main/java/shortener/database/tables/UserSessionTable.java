@@ -52,7 +52,7 @@ public class UserSessionTable implements DatabaseTable<UserSession, Long> {
             .anyMatch(line -> deserialize(line).userId().equals(recordToCreate.userId()));
 
     if (sessionForSimilarUserExists) {
-      throw new IllegalArgumentException("An account with such email already exists");
+      throw new IllegalArgumentException("A session for the provided user already exists");
     }
 
     return recordToCreate;
