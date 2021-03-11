@@ -14,7 +14,7 @@ import shortener.database.entities.User;
  * <p>TODO: Replace mocked data with actual db interaction.
  */
 @Singleton
-public class UserRepository implements Repository<User, Integer> {
+public class UserRepository implements Repository<User, Long> {
 
   // TODO: solve the issue with hashmaps
   private final HashMap<Long, User> idUserHashMap;
@@ -58,7 +58,7 @@ public class UserRepository implements Repository<User, Integer> {
   }
 
   @Override
-  public User get(Integer pk) throws NoSuchElementException {
+  public User get(Long pk) throws NoSuchElementException {
     User user = idUserHashMap.get(pk);
 
     if (user != null) {
@@ -118,7 +118,7 @@ public class UserRepository implements Repository<User, Integer> {
   }
 
   @Override
-  public User delete(Integer pk) throws NoSuchElementException {
+  public User delete(Long pk) throws NoSuchElementException {
     User userToDelete = idUserHashMap.remove(pk);
     if (userToDelete == null) {
       throw new NoSuchElementException();

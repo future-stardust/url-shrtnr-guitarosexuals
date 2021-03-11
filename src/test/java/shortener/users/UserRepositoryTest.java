@@ -32,13 +32,13 @@ public class UserRepositoryTest {
 
   @Test
   void getExistingUserTest() {
-    assertThat(userRepository.get(1)).isNotNull();
+    assertThat(userRepository.get(1L)).isNotNull();
     assertThat(userRepository.get("test1@ex.com")).isNotNull();
   }
 
   @Test
   void getNonExistingUserTest() {
-    assertThatThrownBy(() -> userRepository.get(10),
+    assertThatThrownBy(() -> userRepository.get(10L),
         String.valueOf(NoSuchElementException.class)
     );
     assertThatThrownBy(() -> userRepository.get("notuser@mail.ru"),
@@ -71,14 +71,14 @@ public class UserRepositoryTest {
 
   @Test
   void deleteExistingUserTest() {
-    assertThat(userRepository.delete(1)).isNotNull();
+    assertThat(userRepository.delete(1L)).isNotNull();
     assertThat(userRepository.delete("test2@mail.com")).isNotNull();
     assertThat(userRepository.search()).hasSize(1);
   }
 
   @Test
   void deleteNonExistingUserTest() {
-    assertThatThrownBy(() -> userRepository.delete(10),
+    assertThatThrownBy(() -> userRepository.delete(10L),
         String.valueOf(NoSuchElementException.class)
     );
 
