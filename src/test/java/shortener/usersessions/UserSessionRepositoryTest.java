@@ -7,7 +7,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import shortener.database.UserSession;
+import shortener.database.entities.UserSession;
 import shortener.users.UserSessionRepository;
 
 @MicronautTest
@@ -18,8 +18,8 @@ public class UserSessionRepositoryTest {
   @BeforeEach
   void testDataSetup() {
     userSessionRepository = new UserSessionRepository(new UserSession[]{
-        new UserSession(1, "token1"),
-        new UserSession(2, "token2")
+        new UserSession(1L, "token1"),
+        new UserSession(2L, "token2")
     });
   }
 
@@ -37,41 +37,41 @@ public class UserSessionRepositoryTest {
 
   @Test
   void createNewSessionTest() {
-    UserSession userSession = new UserSession(3, "new-token");
+    UserSession userSession = new UserSession(3L, "new-token");
 
-    int expectedSessionCount = userSessionRepository.search().length + 1;
+    int expectedSessionCount = userSessionRepository.search().size() + 1;
 
     assertThat(userSessionRepository.create(userSession)).isNotNull();
     assertThat(userSessionRepository.get("new-token")).isEqualTo(userSession);
-    assertThat(userSessionRepository.search().length).isEqualTo(expectedSessionCount);
+    assertThat(userSessionRepository.search().size()).isEqualTo(expectedSessionCount);
   }
 
   @Test
   void replaceExistingSessionTest() {
-    UserSession userSession = new UserSession(2, "new-token");
+    UserSession userSession = new UserSession(2L, "new-token");
 
-    int expectedSessionCount = userSessionRepository.search().length;
+    int expectedSessionCount = userSessionRepository.search().size();
 
     assertThat(userSessionRepository.create(userSession)).isNotNull();
     assertThat(userSessionRepository.get("new-token")).isEqualTo(userSession);
-    assertThat(userSessionRepository.search().length).isEqualTo(expectedSessionCount);
+    assertThat(userSessionRepository.search().size()).isEqualTo(expectedSessionCount);
   }
 
   @Test
   void deleteExistingSession() {
-    int expectedSessionCount = userSessionRepository.search().length - 1;
+    int expectedSessionCount = userSessionRepository.search().size() - 1;
 
     assertThat(userSessionRepository.delete("token1")).isNotNull();
-    assertThat(userSessionRepository.search().length).isEqualTo(expectedSessionCount);
+    assertThat(userSessionRepository.search().size()).isEqualTo(expectedSessionCount);
   }
 
   @Test
   void deleteNonExistingSession() {
-    int expectedSessionCount = userSessionRepository.search().length;
+    int expectedSessionCount = userSessionRepository.search().size();
 
     assertThatThrownBy(() -> userSessionRepository.delete("non-existing-token"),
         String.valueOf(NoSuchElementException.class)
     );
-    assertThat(userSessionRepository.search().length).isEqualTo(expectedSessionCount);
+    assertThat(userSessionRepository.search().size()).isEqualTo(expectedSessionCount);
   }
 }

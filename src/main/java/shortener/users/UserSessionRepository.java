@@ -2,11 +2,12 @@ package shortener.users;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import shortener.database.Repository;
-import shortener.database.UserSession;
+import shortener.database.entities.UserSession;
 
 /**
  * A database repository for UserSession entity.
@@ -32,8 +33,8 @@ public class UserSessionRepository implements Repository<UserSession, String> {
   }
 
   @Override
-  public UserSession[] search() {
-    return userSessions.toArray(new UserSession[0]);
+  public List<UserSession> search() {
+    return userSessions;
   }
 
   /**
@@ -65,7 +66,7 @@ public class UserSessionRepository implements Repository<UserSession, String> {
   @Override
   public UserSession create(UserSession newUserSession) {
     // Get userId list of users who have active sessions
-    ArrayList<Integer> userIdList = (ArrayList<Integer>) userSessions.stream()
+    List<Long> userIdList = userSessions.stream()
         .map(UserSession::userId).collect(Collectors.toList());
 
     if (userIdList.contains(newUserSession.userId())) {

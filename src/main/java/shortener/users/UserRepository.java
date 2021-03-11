@@ -2,11 +2,13 @@ package shortener.users;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
 import javax.inject.Singleton;
 import shortener.database.Repository;
-import shortener.database.User;
+import shortener.database.entities.User;
 
 /**
  * A database repository for Users module.
@@ -14,7 +16,7 @@ import shortener.database.User;
  * <p>TODO: Replace mocked data with actual db interaction.
  */
 @Singleton
-public class UserRepository implements Repository<User, Integer> {
+public class UserRepository implements Repository<User, Long> {
 
   /**
    * Method which is used to hash password.
@@ -50,9 +52,9 @@ public class UserRepository implements Repository<User, Integer> {
 
 
   // TODO: solve the issue with hashmaps
-  private final HashMap<Integer, User> idUserHashMap;
+  private final HashMap<Long, User> idUserHashMap;
   private final HashMap<String, User> emailUserHashMap;
-  private int nextId;
+  private long nextId;
 
   /**
    * UserRepository constructor.
@@ -61,8 +63,9 @@ public class UserRepository implements Repository<User, Integer> {
     idUserHashMap = new HashMap<>();
     emailUserHashMap = new HashMap<>();
     nextId = 3; // TODO: nextId init
-    User testUser1 = new User(1, "drew@ex.com", "e50f759eddc80daf88e8f2acf87b3a2ccb31ea125f5ffd4db0bbe93d3208f365");
-    User testUser2 = new User(2, "max@mail.ru", "94b478002799d79f4bf297a8c3a1e945f19e11fca59380c9c2c510ac98910452");
+
+    User testUser1 = new User(1L, "drew@ex.com", "e50f759eddc80daf88e8f2acf87b3a2ccb31ea125f5ffd4db0bbe93d3208f365");
+    User testUser2 = new User(2L, "max@mail.ru", "94b478002799d79f4bf297a8c3a1e945f19e11fca59380c9c2c510ac98910452");
 
     idUserHashMap.put(testUser1.id(), testUser1);
     idUserHashMap.put(testUser2.id(), testUser2);
@@ -86,12 +89,12 @@ public class UserRepository implements Repository<User, Integer> {
   }
 
   @Override
-  public User[] search() {
-    return idUserHashMap.values().toArray(new User[0]);
+  public List<User> search() {
+    return new ArrayList<>(idUserHashMap.values());
   }
 
   @Override
-  public User get(Integer pk) throws NoSuchElementException {
+  public User get(Long pk) throws NoSuchElementException {
     User user = idUserHashMap.get(pk);
 
     if (user != null) {
@@ -151,7 +154,7 @@ public class UserRepository implements Repository<User, Integer> {
   }
 
   @Override
-  public User delete(Integer pk) throws NoSuchElementException {
+  public User delete(Long pk) throws NoSuchElementException {
     User userToDelete = idUserHashMap.remove(pk);
     if (userToDelete == null) {
       throw new NoSuchElementException();

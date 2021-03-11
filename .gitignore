@@ -39,3 +39,10 @@ local.properties
 
 # Cache of project
 .gradletasknamecache
+
+# Database files
+data/
+
+# Directories needed for database testing
+test-db/
+table-test-db/
