@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import shortener.TestUtils;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 public class DatabaseTest {
 
@@ -63,7 +64,7 @@ public class DatabaseTest {
     // Try to create a user with same `email` -- unique for a user
     Assertions.assertThatThrownBy(() -> {
       db.create(db.userTable, new User(null, "same@email.com", "pa$$word"));
-    }).isInstanceOf(IllegalArgumentException.class);
+    }).isInstanceOf(UniqueViolation.class);
   }
 
   @Test

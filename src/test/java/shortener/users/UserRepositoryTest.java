@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 import javax.inject.Inject;
 
@@ -65,10 +66,10 @@ public class UserRepositoryTest {
 
 
     assertThatThrownBy(() -> userRepository.create(busyMailUser),
-        String.valueOf(IllegalArgumentException.class)
+        String.valueOf(UniqueViolation.class)
     );
     assertThatThrownBy(() -> userRepository.create(busyIdUser),
-        String.valueOf(IllegalArgumentException.class)
+        String.valueOf(UniqueViolation.class)
     );
   }
 
