@@ -9,7 +9,7 @@ micronaut:
     endpoints:
       login:
         enabled: true
-        path: /users/signin
+        path: /login
     authentication: bearer
     token:
       jwt:

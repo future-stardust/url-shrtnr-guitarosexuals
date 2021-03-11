@@ -1,7 +1,5 @@
 package shortener.users;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +8,7 @@ import shortener.database.Repository;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.users.protection.HashFunction;
 
 /**
  * A database repository for Users module.
@@ -18,40 +17,6 @@ import shortener.exceptions.database.UniqueViolation;
  */
 @Singleton
 public class UserRepository implements Repository<User, Long> {
-
-  /**
-   * Method which is used to hash password.
-   *
-   * @param rawPassword not hashed password
-   * @param emailAddress email address used as seed
-   * @return hashed password
-   */
-  public String hashOut(String rawPassword, String emailAddress) {
-    try {
-      MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-
-      final String salt = emailAddress;
-      final String localSeed = "AmCDmG";
-      final String passWithSalt = rawPassword + salt + localSeed;
-
-      byte[] passBytes = passWithSalt.getBytes();
-      byte[] passHash = sha256.digest(passBytes);
-
-      final StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < passHash.length; i++) {
-        sb.append(Integer.toString((passHash[i] & 0xff) + 0x100, 16).substring(1));
-      }
-      final String hashedPassword = sb.toString();
-
-      return hashedPassword;
-
-    } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-
   // TODO: solve the issue with hashmaps
   private final HashMap<Long, User> idUserHashMap;
   private final HashMap<String, User> emailUserHashMap;
@@ -143,7 +108,7 @@ public class UserRepository implements Repository<User, Long> {
    * method includes ID generation.
    *
    * @param email    email of new user
-   * @param password password of new user
+   * @param password raw password of new user
    * @return created user record
    */
   public User create(String email, String password) {
@@ -151,7 +116,7 @@ public class UserRepository implements Repository<User, Long> {
       // TODO: tablename from database's class
       throw new UniqueViolation("users");
     }
-    User newUser = new User(nextId++, email, password);
+    User newUser = new User(nextId++, email, HashFunction.hashOut(password, email));
 
     idUserHashMap.put(newUser.id(), newUser);
     emailUserHashMap.put(newUser.email(), newUser);

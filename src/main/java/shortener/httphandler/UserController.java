@@ -1,6 +1,7 @@
 package shortener.httphandler;
 
 import io.micronaut.http.HttpHeaders;
+import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
@@ -8,15 +9,21 @@ import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.UsernamePasswordCredentials;
 import io.micronaut.security.rules.SecurityRule;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.UserDataValidator;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
+import shortener.users.protection.HashFunction;
 
 /**
  * REST API Controller with entrypoints related to user.
@@ -29,6 +36,42 @@ public class UserController {
   @Inject
   UserSessionRepository userSessionRepository;
 
+  @Inject
+  @Client("/")
+  RxHttpClient client;
+
+  /**
+   * Proxy method for login endpoint.
+   *
+   * <p>Converts UserData(email, password) to UsernamePasswordCredentials, then sends auth
+   * request to /login entrypoint of Micronaut. If user credentials are correct, this method
+   * returns access token.
+   *
+   * @param userData user email and password
+   * @return  200 OK - access token<br>
+   *          401 Unauthorized - if credentials are wrong or user not found
+   */
+  @Secured(SecurityRule.IS_ANONYMOUS)
+  @Post(value = "/signin", consumes = MediaType.APPLICATION_JSON)
+  public HttpResponse<?> signIn(@Body UserData userData) {
+    if (userData.email() == null || userData.email().isBlank()
+        || userData.password() == null || userData.password().isBlank()) {
+      return HttpResponse.unauthorized().body("Credentials should not be empty.");
+    }
+    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+        userData.email(),
+        userData.password()
+    );
+
+    HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/login", credentials);
+
+    try {
+      return client.exchange(request, String.class).blockingFirst();
+    } catch (HttpClientResponseException e) {
+      return HttpResponse.unauthorized().body(e.getMessage());
+    }
+  }
+
   /**
    * Sign Up entrypoint. Provides user registration in the system.
    *
@@ -39,8 +82,9 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
-  public HttpResponse<String> signup(@Body UserData userData) {
-    if (userData.email() == null || userData.password() == null) {
+  public HttpResponse<String> signUp(@Body UserData userData) {
+    if (userData.email() == null || userData.email().isBlank()
+        || userData.password() == null || userData.password().isBlank()) {
       return HttpResponse.badRequest("Credentials should not be empty.");
     }
 
@@ -48,12 +92,13 @@ public class UserController {
     final String userPassword = userData.password();
 
     try {
-      userData.validate();
-    } catch (InvalidCredentials exc) {
-      return HttpResponse.badRequest(exc.getMessage());
+      UserDataValidator.validateEmail(userEmail);
+      UserDataValidator.validatePassword(userPassword);
+    } catch (InvalidCredentials e) {
+      return HttpResponse.badRequest(e.getMessage());
     }
 
-    final  String hashedPassword = userRepository.hashOut(userPassword, userEmail);
+    final  String hashedPassword = HashFunction.hashOut(userPassword, userEmail);
 
     try {
       userRepository.create(userEmail, hashedPassword);
@@ -75,7 +120,7 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Get(value = "/signout")
-  public HttpResponse<String> signout(HttpHeaders httpHeaders) {
+  public HttpResponse<String> signOut(HttpHeaders httpHeaders) {
     Optional<String> authorizationHeaderOptional = httpHeaders.getAuthorization();
 
     if (authorizationHeaderOptional.isPresent()) {
