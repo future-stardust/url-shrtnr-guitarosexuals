@@ -6,7 +6,6 @@ import io.micronaut.http.MutableHttpRequest;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.runtime.server.EmbeddedServer;
-import io.micronaut.security.authentication.UsernamePasswordCredentials;
 import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import javax.inject.Inject;
@@ -29,12 +28,12 @@ public class UrlControllerTest {
 
   @BeforeEach
   void setupAuth() {
-    var userData = new UsernamePasswordCredentials(
+    var userData = new UserData(
         "drew@ex.com",
         "qwerty123"
     );
 
-    HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/users/signin", userData);
+    HttpRequest<UserData> request = HttpRequest.POST("/users/signin", userData);
     HttpResponse<BearerAccessRefreshToken> response = client.toBlocking()
         .exchange(request, BearerAccessRefreshToken.class);
 
