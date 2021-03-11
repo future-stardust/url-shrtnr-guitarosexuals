@@ -51,16 +51,16 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signin", consumes = MediaType.APPLICATION_JSON)
-  public HttpResponse<?> signin(@Body UserData userData) {
+  public HttpResponse<?> signIn(@Body UserData userData) {
     if (userData.email() == null || userData.password() == null) {
       return HttpResponse.unauthorized().body("Credentials should not be empty.");
     }
-    UsernamePasswordCredentials creds = new UsernamePasswordCredentials(
+    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
         userData.email(),
         userData.password()
     );
 
-    HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/login", creds);
+    HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/login", credentials);
 
     try {
       return client.exchange(request, String.class).blockingFirst();
@@ -79,7 +79,7 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
-  public HttpResponse<String> signup(@Body UserData userData) {
+  public HttpResponse<String> signUp(@Body UserData userData) {
     if (userData.email() == null || userData.password() == null) {
       return HttpResponse.badRequest("Credentials should not be empty.");
     }
@@ -114,7 +114,7 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Get(value = "/signout")
-  public HttpResponse<String> signout(HttpHeaders httpHeaders) {
+  public HttpResponse<String> signOut(HttpHeaders httpHeaders) {
     Optional<String> authorizationHeaderOptional = httpHeaders.getAuthorization();
 
     if (authorizationHeaderOptional.isPresent()) {
