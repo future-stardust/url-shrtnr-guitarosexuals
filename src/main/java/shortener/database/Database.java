@@ -11,8 +11,11 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
+import shortener.database.entities.UserAlias;
 import shortener.database.tables.AliasTable;
 import shortener.database.tables.DatabaseTable;
+import shortener.database.tables.UserAliasTable;
+import shortener.database.tables.UserSessionTable;
 import shortener.database.tables.UserTable;
 
 /**
@@ -20,10 +23,13 @@ import shortener.database.tables.UserTable;
  */
 @Singleton
 public class Database {
+
   private static final String DEFAULT_ROOT_DIRECTORY = "data";
 
   public UserTable userTable;
   public AliasTable aliasTable;
+  public UserAliasTable userAliasTable;
+  public UserSessionTable userSessionTable;
 
 
   /**
@@ -43,6 +49,8 @@ public class Database {
 
     userTable = new UserTable(rootPath);
     aliasTable = new AliasTable(rootPath);
+    userAliasTable = new UserAliasTable(rootPath);
+    userSessionTable = new UserSessionTable(rootPath);
   }
 
 
@@ -63,7 +71,7 @@ public class Database {
    * @throws IOException Occurs during the database file system setup.
    */
   public static void init(String rootDirectory) throws IOException {
-    Path rootPath = Path.of(DEFAULT_ROOT_DIRECTORY);
+    Path rootPath = Path.of(rootDirectory);
 
     if (Files.exists(rootPath)) {
       if (!Files.isDirectory(rootPath)) {
@@ -76,6 +84,8 @@ public class Database {
     // Init tables
     UserTable.init(rootPath);
     AliasTable.init(rootPath);
+    UserAliasTable.init(rootPath);
+    UserSessionTable.init(rootPath);
   }
 
 

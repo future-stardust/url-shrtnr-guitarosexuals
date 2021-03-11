@@ -5,20 +5,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
-import shortener.database.entities.Alias;
+import shortener.database.entities.UserSession;
 
 /**
- * Alias database table implementation.
+ * UserSession database table implementation.
  */
 @Singleton
-public class AliasTable implements DatabaseTable<Alias, String> {
+public class UserSessionTable implements DatabaseTable<UserSession, Long> {
 
-  private static final String TABLE_NAME = "aliases";
+  private static final String TABLE_NAME = "usersessions";
 
   private final Path filePath;
 
 
-  public AliasTable(Path rootPath) {
+  public UserSessionTable(Path rootPath) {
     filePath = rootPath.resolve(TABLE_NAME);
   }
 
@@ -45,14 +45,14 @@ public class AliasTable implements DatabaseTable<Alias, String> {
 
 
   @Override
-  public Alias prepareRecordForCreation(Alias recordToCreate)
+  public UserSession prepareRecordForCreation(UserSession recordToCreate)
       throws IllegalArgumentException, IOException {
-    boolean aliasWithSimilarAliasExists =
+    boolean sessionForSimilarUserExists =
         readTable().parallel()
-            .anyMatch(line -> deserialize(line).alias().equals(recordToCreate.alias()));
+            .anyMatch(line -> deserialize(line).userId().equals(recordToCreate.userId()));
 
-    if (aliasWithSimilarAliasExists) {
-      throw new IllegalArgumentException("Such alias already exists");
+    if (sessionForSimilarUserExists) {
+      throw new IllegalArgumentException("An account with such email already exists");
     }
 
     return recordToCreate;
@@ -74,16 +74,15 @@ public class AliasTable implements DatabaseTable<Alias, String> {
 
 
   @Override
-  public String serialize(Alias record) {
-    return record.alias() + "|" + record.url() + "|" + record.userId() + "|" + record.usages();
+  public String serialize(UserSession record) {
+    return record.userId() + "|" + record.token();
   }
 
 
   @Override
-  public Alias deserialize(String serialized) {
+  public UserSession deserialize(String serialized) {
     String[] fields = serialized.split("\\|");
 
-    return new Alias(fields[0], fields[1], Long.parseLong(fields[2], 10),
-        Integer.parseInt(fields[3], 10));
+    return new UserSession(Long.parseLong(fields[0], 10), fields[1]);
   }
 }

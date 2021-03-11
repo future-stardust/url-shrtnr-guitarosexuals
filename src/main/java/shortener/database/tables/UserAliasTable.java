@@ -5,20 +5,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
-import shortener.database.entities.Alias;
+import shortener.database.entities.UserAlias;
 
 /**
- * Alias database table implementation.
+ * UserAlias database table implementation.
  */
 @Singleton
-public class AliasTable implements DatabaseTable<Alias, String> {
+public class UserAliasTable implements DatabaseTable<UserAlias, String> {
 
-  private static final String TABLE_NAME = "aliases";
+  private static final String TABLE_NAME = "useraliases";
 
   private final Path filePath;
 
 
-  public AliasTable(Path rootPath) {
+  public UserAliasTable(Path rootPath) {
     filePath = rootPath.resolve(TABLE_NAME);
   }
 
@@ -45,14 +45,14 @@ public class AliasTable implements DatabaseTable<Alias, String> {
 
 
   @Override
-  public Alias prepareRecordForCreation(Alias recordToCreate)
+  public UserAlias prepareRecordForCreation(UserAlias recordToCreate)
       throws IllegalArgumentException, IOException {
-    boolean aliasWithSimilarAliasExists =
+    boolean userAliasWithSimilarAliasExists =
         readTable().parallel()
             .anyMatch(line -> deserialize(line).alias().equals(recordToCreate.alias()));
 
-    if (aliasWithSimilarAliasExists) {
-      throw new IllegalArgumentException("Such alias already exists");
+    if (userAliasWithSimilarAliasExists) {
+      throw new IllegalArgumentException("Such alias already exists for the user");
     }
 
     return recordToCreate;
@@ -74,16 +74,15 @@ public class AliasTable implements DatabaseTable<Alias, String> {
 
 
   @Override
-  public String serialize(Alias record) {
-    return record.alias() + "|" + record.url() + "|" + record.userId() + "|" + record.usages();
+  public String serialize(UserAlias record) {
+    return record.alias() + "|" + record.userId();
   }
 
 
   @Override
-  public Alias deserialize(String serialized) {
+  public UserAlias deserialize(String serialized) {
     String[] fields = serialized.split("\\|");
 
-    return new Alias(fields[0], fields[1], Long.parseLong(fields[2], 10),
-        Integer.parseInt(fields[3], 10));
+    return new UserAlias(Long.parseLong(fields[1], 10), fields[0]);
   }
 }
