@@ -15,6 +15,7 @@ import shortener.database.tables.UserAliasTable;
 import shortener.database.tables.UserSessionTable;
 import shortener.database.tables.UserTable;
 import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * Database implementation class.
@@ -178,12 +179,12 @@ public class Database {
    * @param <EntityT>      Entity type, inherited from the `databaseTable`
    * @param <PrimaryKeyT>  Primary key type, inherited from the `databaseTable`
    * @return Created recordToCreate.
-   * @throws IllegalArgumentException Thrown if any table field uniqueness check did not pass.
+   * @throws UniqueViolation Thrown if any table field uniqueness check did not pass.
    * @throws IOException              File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT create(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                                EntityT recordToCreate)
-      throws IllegalArgumentException, IOException {
+      throws UniqueViolation, IOException {
 
     EntityT recordToSave = databaseTable.prepareRecordForCreation(recordToCreate);
 

@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
 import shortener.database.entities.User;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * User database table implementation.
@@ -46,13 +47,13 @@ public class UserTable implements DatabaseTable<User, Long> {
 
   @Override
   public User prepareRecordForCreation(User recordToCreate)
-      throws IllegalArgumentException, IOException {
+      throws UniqueViolation, IOException {
     boolean userWithSimilarEmailExists =
         readTable().parallel()
             .anyMatch(line -> deserialize(line).email().equals(recordToCreate.email()));
 
     if (userWithSimilarEmailExists) {
-      throw new IllegalArgumentException("An account with such email already exists");
+      throw new UniqueViolation(TABLE_NAME);
     }
 
     long maxId = readTable().parallel().map(line -> {

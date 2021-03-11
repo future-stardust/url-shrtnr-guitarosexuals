@@ -3,6 +3,7 @@ package shortener.database;
 import java.io.IOException;
 import java.util.List;
 import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * Implementation interface of an entity repository.
@@ -40,9 +41,9 @@ public interface Repository<EntityT, PrimaryKeyT> {
    *
    * @param record A record to be inserted.
    * @return Created record.
-   * @throws IllegalArgumentException Thrown if there is an existing record with same pk found.
+   * @throws UniqueViolation Thrown if there is an existing record with same pk found.
    */
-  EntityT create(EntityT record) throws IllegalArgumentException, IOException;
+  EntityT create(EntityT record) throws UniqueViolation, IOException;
 
   /**
    * Removes a record by a given primary key value.

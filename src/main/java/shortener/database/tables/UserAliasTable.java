@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
 import shortener.database.entities.UserAlias;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * UserAlias database table implementation.
@@ -46,13 +47,13 @@ public class UserAliasTable implements DatabaseTable<UserAlias, String> {
 
   @Override
   public UserAlias prepareRecordForCreation(UserAlias recordToCreate)
-      throws IllegalArgumentException, IOException {
+      throws UniqueViolation, IOException {
     boolean userAliasWithSimilarAliasExists =
         readTable().parallel()
             .anyMatch(line -> deserialize(line).alias().equals(recordToCreate.alias()));
 
     if (userAliasWithSimilarAliasExists) {
-      throw new IllegalArgumentException("Such alias already exists for the user");
+      throw new UniqueViolation(TABLE_NAME);
     }
 
     return recordToCreate;

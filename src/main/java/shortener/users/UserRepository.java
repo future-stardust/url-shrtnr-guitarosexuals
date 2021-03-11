@@ -9,6 +9,7 @@ import javax.inject.Singleton;
 import shortener.database.Repository;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * A database repository for Users module.
@@ -126,9 +127,10 @@ public class UserRepository implements Repository<User, Long> {
   }
 
   @Override
-  public User create(User record) throws IllegalArgumentException {
+  public User create(User record) throws UniqueViolation {
     if (idUserHashMap.containsKey(record.id()) || emailUserHashMap.containsKey(record.email())) {
-      throw new IllegalArgumentException("The specified value already exists");
+      // TODO: tablename from database's class
+      throw new UniqueViolation("users");
     }
     idUserHashMap.put(record.id(), record);
     emailUserHashMap.put(record.email(), record);
@@ -146,7 +148,8 @@ public class UserRepository implements Repository<User, Long> {
    */
   public User create(String email, String password) {
     if (emailUserHashMap.containsKey(email)) {
-      throw new IllegalArgumentException("The specified value already exists");
+      // TODO: tablename from database's class
+      throw new UniqueViolation("users");
     }
     User newUser = new User(nextId++, email, password);
 
