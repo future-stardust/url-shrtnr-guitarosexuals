@@ -52,8 +52,10 @@ public class UserController {
       return HttpResponse.badRequest(e.getMessage());
     }
 
+    final  String hashedPassword = userRepository.hashFunc(userPassword, userEmail);
+
     try {
-      userRepository.create(userEmail, userRepository.hashFunc(userPassword, userEmail));
+      userRepository.create(userEmail, hashedPassword);
     } catch (IllegalArgumentException e) {
       return HttpResponse.status(HttpStatus.CONFLICT).body(
           String.format("User %s has already been registered", userEmail)
