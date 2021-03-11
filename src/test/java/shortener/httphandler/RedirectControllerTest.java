@@ -1,5 +1,6 @@
 package shortener.httphandler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.micronaut.core.type.Argument;
@@ -51,5 +52,7 @@ public class RedirectControllerTest {
         Argument.of(String.class)
       )
     );
+
+    assertThat(notFoundException.getMessage()).contains("Alias not found.");
   }
 }
