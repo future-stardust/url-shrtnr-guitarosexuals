@@ -21,9 +21,9 @@ public class UserRepositoryTest {
   @BeforeEach
   void testDataSetup() {
     userRepository = new UserRepository(new User[]{
-        new User(1, "test1@ex.com", userRepository.hashFunc("password1", "test1@ex.com")),
-        new User(2, "test2@mail.com",userRepository.hashFunc("password2", "test2@mail.com")),
-        new User(3, "test3@em.ua", userRepository.hashFunc("password3", "test3@em.ua"))
+        new User(1, "test1@ex.com", userRepository.hashOut("password1", "test1@ex.com")),
+        new User(2, "test2@mail.com",userRepository.hashOut("password2", "test2@mail.com")),
+        new User(3, "test3@em.ua", userRepository.hashOut("password3", "test3@em.ua"))
     });
   }
 

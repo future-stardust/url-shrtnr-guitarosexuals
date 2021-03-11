@@ -50,8 +50,7 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
       try {
         final String userPassword = userRepository.getUserPassword(entryEmail);
 
-        //if ((userRepository.hashFunc(entryPassword, entryEmail)).equals(userPassword)) {
-        if (entryPassword.equals(userPassword)) {
+        if ((userRepository.hashOut(entryPassword, entryEmail)).equals(userPassword)) {
           final UserDetails userDetails = new UserDetails(entryEmail,
               new ArrayList<>(Collections.singletonList("USER")));
 

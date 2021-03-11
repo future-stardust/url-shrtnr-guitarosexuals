@@ -23,7 +23,7 @@ public class UserRepository implements Repository<User, Integer> {
    * @param emailAddress email address used as seed
    * @return hashed password
    */
-  public String hashFunc(String rawPassword, String emailAddress) {
+  public String hashOut(String rawPassword, String emailAddress) {
     try {
       MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
 
@@ -61,8 +61,8 @@ public class UserRepository implements Repository<User, Integer> {
     idUserHashMap = new HashMap<>();
     emailUserHashMap = new HashMap<>();
     nextId = 3; // TODO: nextId init
-    User testUser1 = new User(1, "drew@ex.com", "qwerty123");
-    User testUser2 = new User(2, "max@mail.ru", "lolpasswd");
+    User testUser1 = new User(1, "drew@ex.com", "e50f759eddc80daf88e8f2acf87b3a2ccb31ea125f5ffd4db0bbe93d3208f365");
+    User testUser2 = new User(2, "max@mail.ru", "94b478002799d79f4bf297a8c3a1e945f19e11fca59380c9c2c510ac98910452");
 
     idUserHashMap.put(testUser1.id(), testUser1);
     idUserHashMap.put(testUser2.id(), testUser2);

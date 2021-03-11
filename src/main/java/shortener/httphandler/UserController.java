@@ -52,7 +52,7 @@ public class UserController {
       return HttpResponse.badRequest(e.getMessage());
     }
 
-    final  String hashedPassword = userRepository.hashFunc(userPassword, userEmail);
+    final  String hashedPassword = userRepository.hashOut(userPassword, userEmail);
 
     try {
       userRepository.create(userEmail, hashedPassword);
