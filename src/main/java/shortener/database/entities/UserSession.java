@@ -1,4 +1,4 @@
-package shortener.database;
+package shortener.database.entities;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 
@@ -6,5 +6,5 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
  * UserSession record type.
  */
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-public record UserSession(Integer userId, String token) {
+public record UserSession(Long userId, String token) {
 }
