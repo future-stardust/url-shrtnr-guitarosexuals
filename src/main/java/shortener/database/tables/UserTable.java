@@ -55,14 +55,14 @@ public class UserTable implements DatabaseTable<User, Long> {
       throw new IllegalArgumentException("An account with such email already exists");
     }
 
-    Long lastLineId = readTable().reduce((first, second) -> second).map(line -> {
+    long maxId = readTable().parallel().map(line -> {
       String[] fields = line.split("\\|");
       return Long.parseLong(fields[0]);
-    }).orElse(0L);
+    }).reduce((acc, id) -> id > acc ? id : acc).orElse(0L);
 
-    Long primaryKey = lastLineId + 1;
+    Long newPrimaryKey = maxId + 1;
 
-    return new User(primaryKey, recordToCreate.email(), recordToCreate.password());
+    return new User(newPrimaryKey, recordToCreate.email(), recordToCreate.password());
   }
 
 
