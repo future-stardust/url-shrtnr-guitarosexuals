@@ -18,9 +18,9 @@ public class UserRepositoryTest {
   @BeforeEach
   void testDataSetup() {
     userRepository = new UserRepository(new User[]{
-        new User(1, "test1@ex.com", "password1"),
-        new User(2, "test2@mail.com", "password2"),
-        new User(3, "test3@em.ua", "password3")
+        new User(1L, "test1@ex.com", "password1"),
+        new User(2L, "test2@mail.com", "password2"),
+        new User(3L, "test3@em.ua", "password3")
     });
   }
 
@@ -32,13 +32,13 @@ public class UserRepositoryTest {
 
   @Test
   void getExistingUserTest() {
-    assertThat(userRepository.get(1)).isNotNull();
+    assertThat(userRepository.get(1L)).isNotNull();
     assertThat(userRepository.get("test1@ex.com")).isNotNull();
   }
 
   @Test
   void getNonExistingUserTest() {
-    assertThatThrownBy(() -> userRepository.get(10),
+    assertThatThrownBy(() -> userRepository.get(10L),
         String.valueOf(NoSuchElementException.class)
     );
     assertThatThrownBy(() -> userRepository.get("notuser@mail.ru"),
@@ -48,7 +48,7 @@ public class UserRepositoryTest {
 
   @Test
   void createNonExistingUserTest() {
-    User userRecord = new User(4, "newuser@mail.com", "coolpassword");
+    User userRecord = new User(4L, "newuser@mail.com", "coolpassword");
     User createdUser = userRepository.create(userRecord);
 
     assertThat(createdUser).isNotNull();
@@ -57,8 +57,8 @@ public class UserRepositoryTest {
 
   @Test
   void createAlreadyExistingUserTest() {
-    User busyMailUser = new User(4, "test1@ex.com", "coolpassword");
-    User busyIdUser = new User(3, "newuser@mail.com", "coolpassword");
+    User busyMailUser = new User(4L, "test1@ex.com", "coolpassword");
+    User busyIdUser = new User(3L, "newuser@mail.com", "coolpassword");
 
 
     assertThatThrownBy(() -> userRepository.create(busyMailUser),
@@ -71,14 +71,14 @@ public class UserRepositoryTest {
 
   @Test
   void deleteExistingUserTest() {
-    assertThat(userRepository.delete(1)).isNotNull();
+    assertThat(userRepository.delete(1L)).isNotNull();
     assertThat(userRepository.delete("test2@mail.com")).isNotNull();
     assertThat(userRepository.search()).hasSize(1);
   }
 
   @Test
   void deleteNonExistingUserTest() {
-    assertThatThrownBy(() -> userRepository.delete(10),
+    assertThatThrownBy(() -> userRepository.delete(10L),
         String.valueOf(NoSuchElementException.class)
     );
 
