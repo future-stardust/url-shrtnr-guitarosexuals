@@ -12,6 +12,7 @@ import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
 
 import javax.inject.Inject;
+import shortener.users.protection.HashFunction;
 
 @MicronautTest
 public class UserRepositoryTest {
@@ -22,9 +23,21 @@ public class UserRepositoryTest {
   @BeforeEach
   void testDataSetup() {
     userRepository = new UserRepository(new User[]{
-        new User(1L, "test1@ex.com", userRepository.hashOut("password1", "test1@ex.com")),
-        new User(2L, "test2@mail.com",userRepository.hashOut("password2", "test2@mail.com")),
-        new User(3L, "test3@em.ua", userRepository.hashOut("password3", "test3@em.ua"))
+        new User(
+            1L,
+            "test1@ex.com",
+            HashFunction.hashOut("password1", "test1@ex.com")
+        ),
+        new User(
+            2L,
+            "test2@mail.com",
+            HashFunction.hashOut("password2", "test2@mail.com")
+        ),
+        new User(
+            3L,
+            "test3@em.ua",
+            HashFunction.hashOut("password3", "test3@em.ua")
+        )
     });
   }
 
@@ -64,7 +77,6 @@ public class UserRepositoryTest {
     User busyMailUser = new User(4L, "test1@ex.com", "coolpassword");
     User busyIdUser = new User(3L, "newuser@mail.com", "coolpassword");
 
-
     assertThatThrownBy(() -> userRepository.create(busyMailUser),
         String.valueOf(UniqueViolation.class)
     );
@@ -95,8 +107,11 @@ public class UserRepositoryTest {
 
   @Test
   void getUserPasswordTest() {
-    assertThat(userRepository.getUserPassword("test1@ex.com")).isEqualTo("da0eb01bba47fe9fffd1ce6d539a2b4dcf49cbc99f4fa3a18de63e1715262e99");
-    assertThat(userRepository.getUserPassword("test2@mail.com")).isEqualTo("2cace643e8431817df9a5a809ac121d13bcbaa3e49d628abe8de445a65142963");
-    assertThat(userRepository.getUserPassword("test3@em.ua")).isEqualTo("491e68e41368e324801c11ddcae3ec38376ac6251b5bb768344346fab3f673b5");
+    assertThat(userRepository.getUserPassword("test1@ex.com"))
+        .isEqualTo("da0eb01bba47fe9fffd1ce6d539a2b4dcf49cbc99f4fa3a18de63e1715262e99");
+    assertThat(userRepository.getUserPassword("test2@mail.com"))
+        .isEqualTo("2cace643e8431817df9a5a809ac121d13bcbaa3e49d628abe8de445a65142963");
+    assertThat(userRepository.getUserPassword("test3@em.ua"))
+        .isEqualTo("491e68e41368e324801c11ddcae3ec38376ac6251b5bb768344346fab3f673b5");
   }
 }

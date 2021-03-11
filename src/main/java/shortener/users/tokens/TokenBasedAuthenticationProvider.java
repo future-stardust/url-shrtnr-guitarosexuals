@@ -13,12 +13,14 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.Email;
 import org.reactivestreams.Publisher;
 import shortener.exceptions.database.NotFound;
 import shortener.users.UserRepository;
+import shortener.users.protection.HashFunction;
 
 /**
  * JWT-based authentication provider.
@@ -50,7 +52,7 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
       try {
         final String userPassword = userRepository.getUserPassword(entryEmail);
 
-        if ((userRepository.hashOut(entryPassword, entryEmail)).equals(userPassword)) {
+        if (Objects.equals(HashFunction.hashOut(entryPassword, entryEmail), userPassword)) {
           final UserDetails userDetails = new UserDetails(entryEmail,
               new ArrayList<>(Collections.singletonList("USER")));
 
