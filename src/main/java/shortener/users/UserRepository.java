@@ -1,6 +1,8 @@
 package shortener.users;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.NoSuchElementException;
 import javax.inject.Singleton;
 import shortener.database.Repository;
@@ -15,9 +17,9 @@ import shortener.database.entities.User;
 public class UserRepository implements Repository<User, Integer> {
 
   // TODO: solve the issue with hashmaps
-  private final HashMap<Integer, User> idUserHashMap;
+  private final HashMap<Long, User> idUserHashMap;
   private final HashMap<String, User> emailUserHashMap;
-  private int nextId;
+  private long nextId;
 
   /**
    * UserRepository constructor.
@@ -26,8 +28,8 @@ public class UserRepository implements Repository<User, Integer> {
     idUserHashMap = new HashMap<>();
     emailUserHashMap = new HashMap<>();
     nextId = 3; // TODO: nextId init
-    User testUser1 = new User(1, "drew@ex.com", "qwerty123");
-    User testUser2 = new User(2, "max@mail.ru", "lolpasswd");
+    User testUser1 = new User(1L, "drew@ex.com", "qwerty123");
+    User testUser2 = new User(2L, "max@mail.ru", "lolpasswd");
 
     idUserHashMap.put(testUser1.id(), testUser1);
     idUserHashMap.put(testUser2.id(), testUser2);
@@ -51,8 +53,8 @@ public class UserRepository implements Repository<User, Integer> {
   }
 
   @Override
-  public User[] search() {
-    return idUserHashMap.values().toArray(new User[0]);
+  public List<User> search() {
+    return new ArrayList<>(idUserHashMap.values());
   }
 
   @Override

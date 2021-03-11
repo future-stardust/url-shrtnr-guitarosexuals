@@ -18,9 +18,9 @@ public class UserRepositoryTest {
   @BeforeEach
   void testDataSetup() {
     userRepository = new UserRepository(new User[]{
-        new User(1, "test1@ex.com", "password1"),
-        new User(2, "test2@mail.com", "password2"),
-        new User(3, "test3@em.ua", "password3")
+        new User(1L, "test1@ex.com", "password1"),
+        new User(2L, "test2@mail.com", "password2"),
+        new User(3L, "test3@em.ua", "password3")
     });
   }
 
@@ -48,7 +48,7 @@ public class UserRepositoryTest {
 
   @Test
   void createNonExistingUserTest() {
-    User userRecord = new User(4, "newuser@mail.com", "coolpassword");
+    User userRecord = new User(4L, "newuser@mail.com", "coolpassword");
     User createdUser = userRepository.create(userRecord);
 
     assertThat(createdUser).isNotNull();
@@ -57,8 +57,8 @@ public class UserRepositoryTest {
 
   @Test
   void createAlreadyExistingUserTest() {
-    User busyMailUser = new User(4, "test1@ex.com", "coolpassword");
-    User busyIdUser = new User(3, "newuser@mail.com", "coolpassword");
+    User busyMailUser = new User(4L, "test1@ex.com", "coolpassword");
+    User busyIdUser = new User(3L, "newuser@mail.com", "coolpassword");
 
 
     assertThatThrownBy(() -> userRepository.create(busyMailUser),

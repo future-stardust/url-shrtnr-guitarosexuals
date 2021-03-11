@@ -8,6 +8,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public record Alias(String alias,
                     String url,
-                    Integer userId,
+                    Long userId,
                     Integer usages) {
 }
