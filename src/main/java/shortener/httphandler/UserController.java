@@ -19,8 +19,8 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
-import shortener.httphandler.utils.UserDataValidator;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.UserDataValidator;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
 

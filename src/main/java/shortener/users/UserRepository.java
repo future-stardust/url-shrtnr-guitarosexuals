@@ -30,20 +30,18 @@ public class UserRepository implements Repository<User, Long> {
     try {
       MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
 
-      final String salt = emailAddress;
       final String localSeed = "AmCDmG";
-      final String passWithSalt = rawPassword + salt + localSeed;
+      final String passWithSalt = rawPassword + emailAddress + localSeed;
 
       byte[] passBytes = passWithSalt.getBytes();
       byte[] passHash = sha256.digest(passBytes);
 
       final StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < passHash.length; i++) {
-        sb.append(Integer.toString((passHash[i] & 0xff) + 0x100, 16).substring(1));
+      for (byte hash : passHash) {
+        sb.append(Integer.toString((hash & 0xff) + 0x100, 16).substring(1));
       }
-      final String hashedPassword = sb.toString();
 
-      return hashedPassword;
+      return sb.toString();
 
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
@@ -151,7 +149,7 @@ public class UserRepository implements Repository<User, Long> {
       // TODO: tablename from database's class
       throw new UniqueViolation("users");
     }
-    User newUser = new User(nextId++, email, password);
+    User newUser = new User(nextId++, email, hashOut(password, email));
 
     idUserHashMap.put(newUser.id(), newUser);
     emailUserHashMap.put(newUser.email(), newUser);
