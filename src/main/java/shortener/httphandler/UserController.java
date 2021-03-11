@@ -1,6 +1,7 @@
 package shortener.httphandler;
 
 import io.micronaut.http.HttpHeaders;
+import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
@@ -8,7 +9,11 @@ import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
+import io.micronaut.http.client.RxHttpClient;
+import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.annotation.Secured;
+import io.micronaut.security.authentication.UsernamePasswordCredentials;
 import io.micronaut.security.rules.SecurityRule;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -28,6 +33,41 @@ public class UserController {
   UserRepository userRepository;
   @Inject
   UserSessionRepository userSessionRepository;
+
+  @Inject
+  @Client("/")
+  RxHttpClient client;
+
+  /**
+   * Proxy method for login endpoint.
+   *
+   * <p>Converts UserData(email, password) to UsernamePasswordCredentials, then sends auth
+   * request to /login entrypoint of Micronaut. If user credentials are correct, this method
+   * returns access token.
+   *
+   * @param userData user email and password
+   * @return  200 OK - access token<br>
+   *          401 Unauthorized - if credentials are wrong or user not found
+   */
+  @Secured(SecurityRule.IS_ANONYMOUS)
+  @Post(value = "/signin", consumes = MediaType.APPLICATION_JSON)
+  public HttpResponse<?> signin(@Body UserData userData) {
+    if (userData.email() == null || userData.password() == null) {
+      return HttpResponse.unauthorized().body("Credentials should not be empty.");
+    }
+    UsernamePasswordCredentials creds = new UsernamePasswordCredentials(
+        userData.email(),
+        userData.password()
+    );
+
+    HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/login", creds);
+
+    try {
+      return client.exchange(request, String.class).blockingFirst();
+    } catch (HttpClientResponseException e) {
+      return HttpResponse.unauthorized().body(e.getMessage());
+    }
+  }
 
   /**
    * Sign Up entrypoint. Provides user registration in the system.
