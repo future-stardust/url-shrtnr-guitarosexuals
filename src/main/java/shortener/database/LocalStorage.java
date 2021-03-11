@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import shortener.database.tables.aliases;
+import shortener.database.tables.Aliases;
 
 /**
  * Local Storage for Database.
@@ -34,8 +34,8 @@ public class LocalStorage {
     }
 
     // init all tables' inner content
-    aliases.init(storageDir);
-    // TODO: call init on all tables
+    Aliases.init(storageDir);
+    // TODO: call init on other tables
   }
 
   /**

@@ -9,10 +9,9 @@ import shortener.database.entities.Alias;
 /**
  * Aliases.
  */
-@SuppressWarnings("checkstyle:TypeName")
-public class aliases {
+public class Aliases {
 
-  private static final Logger logger = LoggerFactory.getLogger(aliases.class);
+  private static final Logger logger = LoggerFactory.getLogger(Aliases.class);
 
   private static final int[] asciiCodes = {
     // 0 - 9
@@ -25,7 +24,7 @@ public class aliases {
     // a - z
     97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116,
     117, 118, 119, 120, 121, 122
-  };
+    };
 
   /**
    * Creates 63 files for storing records in a index way.
