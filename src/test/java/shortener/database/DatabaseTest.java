@@ -99,4 +99,29 @@ public class DatabaseTest {
         .isInstanceOf(NoSuchElementException.class);
   }
 
+  @Test
+  void deleteSuccessfullyRemovesRecord() throws IOException {
+    User createdRecord = db.create(db.userTable, new User(null, "test@email.com", "pa$$word"));
+
+    User deletedRecord = db.delete(db.userTable, createdRecord.id());
+
+    Assertions.assertThat(deletedRecord).isEqualTo(createdRecord);
+
+    // Check filesystem
+    Path tablePath = Path.of(TEST_DATABASE_DIRECTORY, db.userTable.getTableName());
+
+    System.out.println(Files.readAllLines(tablePath));
+
+    Assertions.assertThat(Files.lines(tablePath))
+        .noneMatch(
+            line -> line.contains(deletedRecord.id().toString())
+                && line.contains(deletedRecord.email()));
+  }
+
+  @Test
+  void deleteThrowsIfNoRecordFound() {
+    Assertions.assertThatThrownBy(() -> db.delete(db.userTable, 1337L))
+        .isInstanceOf(NoSuchElementException.class);
+  }
+
 }
