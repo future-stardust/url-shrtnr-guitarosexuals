@@ -74,7 +74,26 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(emptyUserException.getMessage()).contains("Invalid email address");
+    assertThat(emptyUserException.getMessage()).contains("Credentials should not be empty");
+  }
+
+  @Test
+  void signUpExistingUser() {
+    var existingUser = new UserData("test@mail.com", "Passwd123");
+
+    HttpRequest<String> emptyUserRequest = HttpRequest
+        .POST("/users/signup", gson.toJson(existingUser));
+
+    // TODO: improve 4xx code response checking (e.g. status code check)
+    Throwable emptyUserException = Assertions.assertThrows(
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            emptyUserRequest,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
+    );
+    assertThat(emptyUserException.getMessage()).contains("has already been registered");
   }
 
   @Test
