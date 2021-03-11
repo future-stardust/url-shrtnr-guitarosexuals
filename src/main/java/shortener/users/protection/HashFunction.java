@@ -3,6 +3,10 @@ package shortener.users.protection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * A class to provide hash function protection.
+ *
+ */
 public class HashFunction {
 
   /**
