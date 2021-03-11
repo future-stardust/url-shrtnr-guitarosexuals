@@ -38,7 +38,7 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
-  public HttpResponse<String> signup(@Body UserValidation userData) {
+  public HttpResponse<String> signup(@Body UserUtils userData) {
     if (userData.email() == null || userData.password() == null) {
       return HttpResponse.badRequest("Credentials should not be empty.");
     }

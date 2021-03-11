@@ -1,13 +1,15 @@
 package shortener.httphandler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import shortener.exceptions.auth.InvalidCredentials;
 
 /**
  * Temporary container class for credentials. Provides auto json parsing and data validation
  */
-public record UserValidation(@JsonProperty("email") String email,
-                             @JsonProperty("password") String password) {
+public record UserUtils(@JsonProperty("email") String email,
+                        @JsonProperty("password") String password) {
 
   private static final String EMAIL_ADDRESS_PATTERN =
       "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
@@ -46,6 +48,25 @@ public record UserValidation(@JsonProperty("email") String email,
 
     if (!password.matches(PASSWORD_NUMBER_PATTERN)) {
       throw new InvalidCredentials("Password must contain at least one number.");
+    }
+  }
+
+  /**
+   * JSON validation method. Used to check the structure correctness of the given stringed JSON
+   *
+   * @param rawJson JSON string representation
+   *
+   * @return boolean
+   */
+  public boolean validateJson(String rawJson) {
+    Gson g = new Gson();
+
+    try {
+      UserUtils userValidation = g.fromJson(rawJson, UserUtils.class);
+
+      return userValidation.email != null && userValidation.password != null;
+    } catch (JsonSyntaxException jsonSyntaxException) {
+      return false;
     }
   }
 }
