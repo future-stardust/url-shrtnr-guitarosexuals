@@ -1,15 +1,11 @@
-package shortener.httphandler;
+package shortener.httphandler.utils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import shortener.exceptions.auth.InvalidCredentials;
 
 /**
- * Temporary container class for credentials. Provides auto json parsing and data validation
+ * Helper class, providing methods for email and password validation.
  */
-public record UserUtils(@JsonProperty("email") String email,
-                        @JsonProperty("password") String password) {
+public final class UserDataValidator {
 
   private static final String EMAIL_ADDRESS_PATTERN =
       "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
@@ -20,22 +16,35 @@ public record UserUtils(@JsonProperty("email") String email,
   private static final Integer PASSWORD_MAX_LENGTH = 20;
 
   /**
-   * Credentials validation method. Used to check contained fields for compliance with the
-   * established rules.
+   * Email validation method. Used to check contained email for compliance with email address
+   * pattern.
+   *
+   * @param email email to be validated
+   * @throws InvalidCredentials if email is wrong
    */
-  public void validate() {
+  public static void validateEmail(String email) throws InvalidCredentials {
     if (!email.matches(EMAIL_ADDRESS_PATTERN)) {
       throw new InvalidCredentials("Invalid email address.");
     }
+  }
+
+  /**
+   * Password validation method. Used to check contained password for compliance with the
+   * established rules: length, the presence of uppercase/lowercase letters and numbers.
+   *
+   * @param password password to be validated
+   * @throws InvalidCredentials if the password does not meet the requirements
+   */
+  public static void validatePassword(String password) throws InvalidCredentials {
 
     if (password.length() < PASSWORD_MIN_LENGTH) {
       throw new InvalidCredentials(
-        String.format("Password must be at least %s characters long.", PASSWORD_MIN_LENGTH));
+          String.format("Password must be at least %s characters long.", PASSWORD_MIN_LENGTH));
     }
 
     if (password.length() > PASSWORD_MAX_LENGTH) {
       throw new InvalidCredentials(
-        String.format("Password must be no longer than %s characters.", PASSWORD_MAX_LENGTH));
+          String.format("Password must be no longer than %s characters.", PASSWORD_MAX_LENGTH));
     }
 
     if (!password.matches(PASSWORD_UPPERCASE_PATTERN)) {
@@ -48,25 +57,6 @@ public record UserUtils(@JsonProperty("email") String email,
 
     if (!password.matches(PASSWORD_NUMBER_PATTERN)) {
       throw new InvalidCredentials("Password must contain at least one number.");
-    }
-  }
-
-  /**
-   * JSON validation method. Used to check the structure correctness of the given stringed JSON
-   *
-   * @param rawJson JSON string representation
-   *
-   * @return boolean
-   */
-  public boolean validateJson(String rawJson) {
-    Gson g = new Gson();
-
-    try {
-      UserUtils userValidation = g.fromJson(rawJson, UserUtils.class);
-
-      return userValidation.email != null && userValidation.password != null;
-    } catch (JsonSyntaxException jsonSyntaxException) {
-      return false;
     }
   }
 }

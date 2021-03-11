@@ -14,6 +14,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
+import shortener.httphandler.utils.UserDataValidator;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
 
@@ -38,7 +39,7 @@ public class UserController {
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signup", consumes = MediaType.APPLICATION_JSON)
-  public HttpResponse<String> signup(@Body UserUtils userData) {
+  public HttpResponse<String> signup(@Body UserData userData) {
     if (userData.email() == null || userData.password() == null) {
       return HttpResponse.badRequest("Credentials should not be empty.");
     }
@@ -47,7 +48,8 @@ public class UserController {
     final String userPassword = userData.password();
 
     try {
-      userData.validate();
+      UserDataValidator.validateEmail(userEmail);
+      UserDataValidator.validatePassword(userPassword);
     } catch (InvalidCredentials e) {
       return HttpResponse.badRequest(e.getMessage());
     }
