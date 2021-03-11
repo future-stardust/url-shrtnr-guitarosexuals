@@ -18,7 +18,7 @@ After the third laboratory assignment groups will switch projects with one anoth
 all projects have to have the same high-level structure. Also, this is the reason why we will not
 modify project dependencies.
 
-There are five modules:
+There are FOUR modules:
 - `httphandler` - **HTTP Frontend** - Handles HTTP requests, provides REST API
 - `users` - **Users** - Authenticates and manages users
 - `urls` - **URLs** - Operates URLs (creation, usage, removal)
@@ -40,10 +40,6 @@ We use [checkstyle] to ensure coding standards. We use Google rules (local copy 
 1. Clone this repo
 2. Open the project direcotry in your editor/IDE
 3. Configure code style settings
-
-## Commit messages
-
-Write commit messages accordingly by [7 rules of good commit messages].
   
 [JDK]: https://en.wikipedia.org/wiki/Java_Development_Kit
 [sdkman]: https://sdkman.io/
