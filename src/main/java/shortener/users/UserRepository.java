@@ -1,5 +1,7 @@
 package shortener.users;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import javax.inject.Singleton;
@@ -13,6 +15,39 @@ import shortener.database.User;
  */
 @Singleton
 public class UserRepository implements Repository<User, Integer> {
+
+  /**
+   * Method which is used to hash password.
+   *
+   * @param rawPassword not hashed password
+   * @param emailAddress email address used as seed
+   * @return hashed password
+   */
+  public String hashFunc(String rawPassword, String emailAddress) {
+    try {
+      MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+
+      final String salt = emailAddress;
+      final String localSeed = "AmCDmG";
+      final String passWithSalt = rawPassword + salt + localSeed;
+
+      byte[] passBytes = passWithSalt.getBytes();
+      byte[] passHash = sha256.digest(passBytes);
+
+      final StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < passHash.length; i++) {
+        sb.append(Integer.toString((passHash[i] & 0xff) + 0x100, 16).substring(1));
+      }
+      final String hashedPassword = sb.toString();
+
+      return hashedPassword;
+
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
 
   // TODO: solve the issue with hashmaps
   private final HashMap<Integer, User> idUserHashMap;

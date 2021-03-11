@@ -10,17 +10,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.database.User;
 
+import javax.inject.Inject;
+
 @MicronautTest
 public class UserRepositoryTest {
 
+  @Inject
   UserRepository userRepository;
 
   @BeforeEach
   void testDataSetup() {
     userRepository = new UserRepository(new User[]{
-        new User(1, "test1@ex.com", "password1"),
-        new User(2, "test2@mail.com", "password2"),
-        new User(3, "test3@em.ua", "password3")
+        new User(1, "test1@ex.com", userRepository.hashFunc("password1", "test1@ex.com")),
+        new User(2, "test2@mail.com",userRepository.hashFunc("password2", "test2@mail.com")),
+        new User(3, "test3@em.ua", userRepository.hashFunc("password3", "test3@em.ua"))
     });
   }
 
@@ -91,6 +94,8 @@ public class UserRepositoryTest {
 
   @Test
   void getUserPasswordTest() {
-    assertThat(userRepository.getUserPassword("test1@ex.com")).isEqualTo("password1");
+    assertThat(userRepository.getUserPassword("test1@ex.com")).isEqualTo("da0eb01bba47fe9fffd1ce6d539a2b4dcf49cbc99f4fa3a18de63e1715262e99");
+    assertThat(userRepository.getUserPassword("test2@mail.com")).isEqualTo("2cace643e8431817df9a5a809ac121d13bcbaa3e49d628abe8de445a65142963");
+    assertThat(userRepository.getUserPassword("test3@em.ua")).isEqualTo("491e68e41368e324801c11ddcae3ec38376ac6251b5bb768344346fab3f673b5");
   }
 }
