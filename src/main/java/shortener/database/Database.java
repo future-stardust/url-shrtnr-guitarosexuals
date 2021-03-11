@@ -188,7 +188,7 @@ public class Database {
     EntityT recordToSave = databaseTable.prepareRecordForCreation(recordToCreate);
 
     Files.write(databaseTable.getWritableFilePath(),
-        (System.lineSeparator() + databaseTable.serialize(recordToSave)).getBytes(),
+        (databaseTable.serialize(recordToSave) + System.lineSeparator()).getBytes(),
         StandardOpenOption.APPEND);
 
     return recordToSave;
