@@ -18,13 +18,13 @@ public interface Repository<EntityT, PrimaryKeyT> {
    */
   List<EntityT> search() throws IOException;
 
-//  /**
-//   * Lists all records of a collection.
-//   *
-//   * @param predicate A lambda that returns true if the record satisfies conditions.
-//   * @return Array of all found records.
-//   */
-//  List<EntityT> search(Predicate<EntityT> predicate) throws IOException;
+  //  /**
+  //   * Lists all records of a collection.
+  //   *
+  //   * @param predicate A lambda that returns true if the record satisfies conditions.
+  //   * @return Array of all found records.
+  //   */
+  //  List<EntityT> search(Predicate<EntityT> predicate) throws IOException;
 
   /**
    * Finds a record by a given primary key value.

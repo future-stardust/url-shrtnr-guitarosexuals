@@ -39,3 +39,6 @@ local.properties
 
 # Cache of project
 .gradletasknamecache
+
+# Database files
+data/
