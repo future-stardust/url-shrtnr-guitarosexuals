@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import javax.inject.Singleton;
-import shortener.database.Alias;
 import shortener.database.Repository;
+import shortener.database.entities.Alias;
 
 /**
  * A database repository for Urls module.

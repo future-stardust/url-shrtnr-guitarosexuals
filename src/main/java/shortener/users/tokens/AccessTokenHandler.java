@@ -11,8 +11,8 @@ import io.micronaut.security.token.jwt.render.AccessRefreshToken;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import shortener.database.User;
-import shortener.database.UserSession;
+import shortener.database.entities.User;
+import shortener.database.entities.UserSession;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
 

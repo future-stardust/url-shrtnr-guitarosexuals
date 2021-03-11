@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.NoSuchElementException;
 import javax.inject.Singleton;
 import shortener.database.Repository;
-import shortener.database.User;
+import shortener.database.entities.User;
 
 /**
  * A database repository for Users module.

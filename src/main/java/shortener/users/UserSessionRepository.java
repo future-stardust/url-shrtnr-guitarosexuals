@@ -6,7 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import shortener.database.Repository;
-import shortener.database.UserSession;
+import shortener.database.entities.UserSession;
 
 /**
  * A database repository for UserSession entity.
