@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.NoSuchElementException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.TestUtils;
 import shortener.database.entities.User;
+import shortener.exceptions.database.NotFound;
 
 public class DatabaseTest {
 
@@ -96,7 +96,7 @@ public class DatabaseTest {
   @Test
   void getThrowsIfRecordNotFound() {
     Assertions.assertThatThrownBy(() -> db.get(db.userTable, 1337L))
-        .isInstanceOf(NoSuchElementException.class);
+        .isInstanceOf(NotFound.class);
   }
 
   @Test
@@ -121,7 +121,7 @@ public class DatabaseTest {
   @Test
   void deleteThrowsIfNoRecordFound() {
     Assertions.assertThatThrownBy(() -> db.delete(db.userTable, 1337L))
-        .isInstanceOf(NoSuchElementException.class);
+        .isInstanceOf(NotFound.class);
   }
 
 }

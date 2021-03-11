@@ -3,10 +3,10 @@ package shortener.urls;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import javax.inject.Singleton;
 import shortener.database.Repository;
 import shortener.database.entities.Alias;
+import shortener.exceptions.database.NotFound;
 
 /**
  * A database repository for Urls module.
@@ -54,7 +54,8 @@ public class UrlsRepository implements Repository<Alias, String> {
       }
     }
 
-    throw new NoSuchElementException();
+    // TODO: get tablename from database's class
+    throw new NotFound("aliases", pk);
   }
 
   @Override
@@ -79,6 +80,7 @@ public class UrlsRepository implements Repository<Alias, String> {
       }
     }
 
-    throw new NoSuchElementException();
+    // TODO: get tablename from database's class
+    throw new NotFound("aliases", pk);
   }
 }

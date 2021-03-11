@@ -3,11 +3,11 @@ package shortener.users;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import shortener.database.Repository;
 import shortener.database.entities.UserSession;
+import shortener.exceptions.database.NotFound;
 
 /**
  * A database repository for UserSession entity.
@@ -42,18 +42,19 @@ public class UserSessionRepository implements Repository<UserSession, String> {
    *
    * @param token access token
    * @return found user session
-   * @throws NoSuchElementException if session with specified token not found
+   * @throws NotFound if session with specified token not found
    */
   @Override
-  public UserSession get(String token) throws NoSuchElementException {
+  public UserSession get(String token) throws NotFound {
     for (UserSession userSession : userSessions) {
       if (userSession.token().equals(token)) {
         return userSession;
       }
     }
 
-    throw new NoSuchElementException(
-        String.format("User session with the specified ID (%s) does not exist.", token));
+    // TODO: tablename from database class
+    // TODO: ensure that in database "token" is used as PK
+    throw new NotFound("usersessions", token);
   }
 
   /**
@@ -83,10 +84,10 @@ public class UserSessionRepository implements Repository<UserSession, String> {
    *
    * @param token token to be deleted
    * @return deleted token
-   * @throws NoSuchElementException if session with specified token not found
+   * @throws NotFound if session with specified token not found
    */
   @Override
-  public UserSession delete(String token) throws NoSuchElementException {
+  public UserSession delete(String token) throws NotFound {
     for (UserSession userSession : userSessions) {
       if (userSession.token().equals(token)) {
         userSessions.remove(userSession);
@@ -94,8 +95,8 @@ public class UserSessionRepository implements Repository<UserSession, String> {
       }
     }
 
-    throw new NoSuchElementException(
-        String.format("User session with the specified ID (%s) does not exist.", token));
-
+    // TODO: tablename from database class
+    // TODO: ensure that in database "token" is used as PK
+    throw new NotFound("usersessions", token);
   }
 }

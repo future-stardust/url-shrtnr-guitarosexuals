@@ -2,10 +2,10 @@ package shortener.users.tokens;
 
 import io.micronaut.context.event.ApplicationEventListener;
 import io.micronaut.security.event.TokenValidatedEvent;
-import java.util.NoSuchElementException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import shortener.exceptions.auth.InvalidToken;
+import shortener.exceptions.database.NotFound;
 import shortener.users.UserSessionRepository;
 
 /**
@@ -30,7 +30,7 @@ public class TokenValidatedEventListener implements ApplicationEventListener<Tok
 
     try {
       userSessionRepository.get(accessToken);
-    } catch (NoSuchElementException e) {
+    } catch (NotFound exc) {
       throw new InvalidToken();
     }
   }

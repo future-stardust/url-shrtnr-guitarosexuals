@@ -8,9 +8,9 @@ import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.NoSuchElementException;
 import javax.inject.Inject;
 import shortener.database.entities.Alias;
+import shortener.exceptions.database.NotFound;
 import shortener.urls.UrlsRepository;
 
 /**
@@ -34,7 +34,7 @@ public class RedirectController {
     Alias aliasRecord;
     try {
       aliasRecord = urlsRepository.get(alias);
-    } catch (NoSuchElementException exc) {
+    } catch (NotFound exc) {
       return HttpResponse.notFound();
     }
 

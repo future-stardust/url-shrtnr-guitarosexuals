@@ -2,7 +2,7 @@ package shortener.database;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.NoSuchElementException;
+import shortener.exceptions.database.NotFound;
 
 /**
  * Implementation interface of an entity repository.
@@ -31,9 +31,9 @@ public interface Repository<EntityT, PrimaryKeyT> {
    *
    * @param pk Primary key to find a record by.
    * @return Found record.
-   * @throws NoSuchElementException Thrown if no element found by given `pk`.
+   * @throws NotFound Thrown if no element found by given `pk`.
    */
-  EntityT get(PrimaryKeyT pk) throws NoSuchElementException, IOException;
+  EntityT get(PrimaryKeyT pk) throws NotFound, IOException;
 
   /**
    * Method responsible for inserting a record to into a table.
@@ -49,7 +49,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    *
    * @param pk Primary key to remove a record by.
    * @return Removed record.
-   * @throws NoSuchElementException Thrown if no element found by given `pk`.
+   * @throws NotFound Thrown if no element found by given `pk`.
    */
-  EntityT delete(PrimaryKeyT pk) throws NoSuchElementException;
+  EntityT delete(PrimaryKeyT pk) throws NotFound;
 }

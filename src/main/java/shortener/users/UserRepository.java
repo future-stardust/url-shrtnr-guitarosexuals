@@ -5,10 +5,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
 import javax.inject.Singleton;
 import shortener.database.Repository;
 import shortener.database.entities.User;
+import shortener.exceptions.database.NotFound;
 
 /**
  * A database repository for Users module.
@@ -97,15 +97,15 @@ public class UserRepository implements Repository<User, Long> {
   }
 
   @Override
-  public User get(Long pk) throws NoSuchElementException {
+  public User get(Long pk) throws NotFound {
     User user = idUserHashMap.get(pk);
 
     if (user != null) {
       return user;
     }
 
-    throw new NoSuchElementException(
-        String.format("User with the specified pk (%d) not found", pk));
+    // TODO: tablename from database class
+    throw new NotFound("users", pk);
   }
 
   /**
@@ -113,13 +113,13 @@ public class UserRepository implements Repository<User, Long> {
    *
    * @param email email string
    * @return User object with specified email
-   * @throws NoSuchElementException if such user not found
+   * @throws NotFound if such user not found
    */
-  public User get(String email) throws NoSuchElementException {
+  public User get(String email) throws NotFound {
     User user = emailUserHashMap.get(email);
     if (user == null) {
-      throw new NoSuchElementException(
-          String.format("User with the specified email (%s) not found", email));
+      // TODO: tablename from database class
+      throw new NotFound("users", email);
     }
 
     return user;
@@ -157,10 +157,11 @@ public class UserRepository implements Repository<User, Long> {
   }
 
   @Override
-  public User delete(Long pk) throws NoSuchElementException {
+  public User delete(Long pk) throws NotFound {
     User userToDelete = idUserHashMap.remove(pk);
     if (userToDelete == null) {
-      throw new NoSuchElementException();
+      // TODO: tablename from database class
+      throw new NotFound("users", pk);
     }
 
     return emailUserHashMap.remove(userToDelete.email());
@@ -171,12 +172,13 @@ public class UserRepository implements Repository<User, Long> {
    *
    * @param email email of user to be deleted
    * @return deleted user record
-   * @throws NoSuchElementException if such user not found
+   * @throws NotFound if such user not found
    */
-  public User delete(String email) throws NoSuchElementException {
+  public User delete(String email) throws NotFound {
     User userToDelete = emailUserHashMap.remove(email);
     if (userToDelete == null) {
-      throw new NoSuchElementException();
+      // TODO: tablename from database class
+      throw new NotFound("users", email);
     }
 
     return idUserHashMap.remove(userToDelete.id());

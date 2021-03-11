@@ -13,11 +13,11 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.NoSuchElementException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.Email;
 import org.reactivestreams.Publisher;
+import shortener.exceptions.database.NotFound;
 import shortener.users.UserRepository;
 
 /**
@@ -59,7 +59,7 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
           emitter.onError(new AuthenticationException(
               new AuthenticationFailed(AuthenticationFailureReason.CREDENTIALS_DO_NOT_MATCH)));
         }
-      } catch (NoSuchElementException noSuchElementException) {
+      } catch (NotFound exc) {
         emitter.onError(new AuthenticationException(
             new AuthenticationFailed(AuthenticationFailureReason.USER_NOT_FOUND)));
       }
