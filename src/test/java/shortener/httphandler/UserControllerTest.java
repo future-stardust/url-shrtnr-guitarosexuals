@@ -63,16 +63,16 @@ public class UserControllerTest {
     var emptyUser = new UserData("", "");
 
     HttpRequest<String> emptyUserRequest = HttpRequest
-      .POST("/users/signup", gson.toJson(emptyUser));
+        .POST("/users/signup", gson.toJson(emptyUser));
 
     // TODO: improve 4xx code response checking (e.g. status code check)
     Throwable emptyUserException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        emptyUserRequest,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            emptyUserRequest,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
     assertThat(emptyUserException.getMessage()).contains("Invalid email address");
   }
@@ -82,15 +82,15 @@ public class UserControllerTest {
     var wrongMailUser = new UserData("wrongmail", "Passwd2021");
 
     HttpRequest<String> wrongMailUserRequest = HttpRequest
-      .POST("/users/signup", gson.toJson(wrongMailUser));
+        .POST("/users/signup", gson.toJson(wrongMailUser));
 
     Throwable wrongMailUserException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        wrongMailUserRequest,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            wrongMailUserRequest,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
     assertThat(wrongMailUserException.getMessage()).contains("Invalid email address");
 
@@ -101,15 +101,15 @@ public class UserControllerTest {
     var wrongPasswordUser = new UserData("user@mail.com", "pass");
 
     HttpRequest<String> wrongPasswordUserRequest = HttpRequest
-      .POST("/users/signup", gson.toJson(wrongPasswordUser));
+        .POST("/users/signup", gson.toJson(wrongPasswordUser));
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        wrongPasswordUserRequest,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            wrongPasswordUserRequest,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
     assertThat(wrongPasswordUserException.getMessage()).contains("Password");
   }
@@ -119,11 +119,11 @@ public class UserControllerTest {
     var user = new UserData("test@mail.com", "CoolPasswd123");
 
     HttpRequest<String> request = HttpRequest
-      .POST("/users/signin", gson.toJson(user));
+        .POST("/users/signin", gson.toJson(user));
 
     HttpResponse<String> response = client.toBlocking().exchange(
-      request,
-      String.class
+        request,
+        String.class
     );
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
@@ -136,15 +136,15 @@ public class UserControllerTest {
     var wrongPasswdUser = new UserData("test@mail.com", "WrongPasswd");
 
     HttpRequest<String> request = HttpRequest
-      .POST("/users/signin", gson.toJson(wrongPasswdUser));
+        .POST("/users/signin", gson.toJson(wrongPasswdUser));
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        request,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            request,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
     assertThat(wrongPasswordUserException.getMessage()).contains("Credentials Do Not Match");
   }
@@ -154,15 +154,15 @@ public class UserControllerTest {
     var wrongPasswdUser = new UserData("nonexistent@mail.com", "Passwd123");
 
     HttpRequest<String> request = HttpRequest
-      .POST("/users/signin", gson.toJson(wrongPasswdUser));
+        .POST("/users/signin", gson.toJson(wrongPasswdUser));
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        request,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            request,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
     assertThat(wrongPasswordUserException.getMessage()).contains("User Not Found");
   }
@@ -172,21 +172,21 @@ public class UserControllerTest {
     var validUser = new UserData("test@mail.com", "CoolPasswd123");
 
     HttpRequest<String> signInRequest = HttpRequest
-      .POST("/users/signin", gson.toJson(validUser));
+        .POST("/users/signin", gson.toJson(validUser));
 
     HttpResponse<BearerAccessRefreshToken> signInResponse = client.toBlocking().exchange(
-      signInRequest,
-      BearerAccessRefreshToken.class
+        signInRequest,
+        BearerAccessRefreshToken.class
     );
 
     final String accessToken = Objects.requireNonNull(signInResponse.body()).getAccessToken();
 
     HttpRequest<Object> signOutRequest = HttpRequest.GET("/users/signout")
-      .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", accessToken));
+        .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", accessToken));
 
     HttpResponse<String> response = client.toBlocking().exchange(
-      signOutRequest,
-      String.class
+        signOutRequest,
+        String.class
     );
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
@@ -199,12 +199,12 @@ public class UserControllerTest {
     HttpRequest<Object> request = HttpRequest.GET("/users/signout");
 
     Throwable userNotAuthorizedException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        request,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            request,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
 
     assertThat(userNotAuthorizedException.getMessage()).contains("Unauthorized");
@@ -212,15 +212,16 @@ public class UserControllerTest {
 
   @Test
   void signOutWithInvalidToken() {
-    HttpRequest<Object> request = HttpRequest.GET("/users/signout").header(HttpHeaders.AUTHORIZATION, "Bearer invalidTokenEntry");
+    HttpRequest<Object> request = HttpRequest.GET("/users/signout")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer invalidTokenEntry");
 
     Throwable userNotAuthorizedException = Assertions.assertThrows(
-      HttpClientResponseException.class,
-      () -> client.toBlocking().exchange(
-        request,
-        Argument.of(String.class),
-        Argument.of(String.class)
-      )
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            request,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
     );
 
     assertThat(userNotAuthorizedException.getMessage()).contains("Unauthorized");
