@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
 import shortener.database.entities.Alias;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * Alias database table implementation.
@@ -46,13 +47,13 @@ public class AliasTable implements DatabaseTable<Alias, String> {
 
   @Override
   public Alias prepareRecordForCreation(Alias recordToCreate)
-      throws IllegalArgumentException, IOException {
+      throws UniqueViolation, IOException {
     boolean aliasWithSimilarAliasExists =
         readTable().parallel()
             .anyMatch(line -> deserialize(line).alias().equals(recordToCreate.alias()));
 
     if (aliasWithSimilarAliasExists) {
-      throw new IllegalArgumentException("Such alias already exists");
+      throw new UniqueViolation(TABLE_NAME);
     }
 
     return recordToCreate;

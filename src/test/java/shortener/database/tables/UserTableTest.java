@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.TestUtils;
 import shortener.database.entities.User;
+import shortener.exceptions.database.UniqueViolation;
 
 
 public class UserTableTest {
@@ -51,7 +52,7 @@ public class UserTableTest {
 
     Assertions.assertThatThrownBy(() -> {
       table.prepareRecordForCreation(new User(null, "test@email.com", "pa$$word"));
-    }).isInstanceOf(IllegalArgumentException.class);
+    }).isInstanceOf(UniqueViolation.class);
   }
 
   @Test

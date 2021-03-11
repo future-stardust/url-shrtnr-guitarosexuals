@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.TestUtils;
 import shortener.database.entities.UserAlias;
+import shortener.exceptions.database.UniqueViolation;
 
 
 public class UserAliasTableTest {
@@ -51,7 +52,7 @@ public class UserAliasTableTest {
 
     Assertions.assertThatThrownBy(() -> {
       table.prepareRecordForCreation(new UserAlias(1L, "test"));
-    }).isInstanceOf(IllegalArgumentException.class);
+    }).isInstanceOf(UniqueViolation.class);
   }
 
   @Test

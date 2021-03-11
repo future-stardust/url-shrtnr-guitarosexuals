@@ -3,6 +3,7 @@ package shortener.database.tables;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * Database table interface.
@@ -26,12 +27,12 @@ public interface DatabaseTable<EntityT, PrimaryKeyT> {
    *
    * @param recordToCreate A record to save.
    * @return Unique primary key to identify the passed `recordToCreate` by.
-   * @throws IllegalArgumentException Should be thrown if any uniqueness checks fail.
+   * @throws UniqueViolation Should be thrown if any uniqueness checks fail.
    * @throws IOException              Should be thrown if failed to calculate a key depending
    *                                  on the db state.
    */
   EntityT prepareRecordForCreation(EntityT recordToCreate)
-      throws IllegalArgumentException, IOException;
+      throws UniqueViolation, IOException;
 
   /**
    * Returns a path to a file.

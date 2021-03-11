@@ -2,7 +2,8 @@ package shortener.database;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.NoSuchElementException;
+import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * Implementation interface of an entity repository.
@@ -31,25 +32,25 @@ public interface Repository<EntityT, PrimaryKeyT> {
    *
    * @param pk Primary key to find a record by.
    * @return Found record.
-   * @throws NoSuchElementException Thrown if no element found by given `pk`.
+   * @throws NotFound Thrown if no element found by given `pk`.
    */
-  EntityT get(PrimaryKeyT pk) throws NoSuchElementException, IOException;
+  EntityT get(PrimaryKeyT pk) throws NotFound, IOException;
 
   /**
    * Method responsible for inserting a record to into a table.
    *
    * @param record A record to be inserted.
    * @return Created record.
-   * @throws IllegalArgumentException Thrown if there is an existing record with same pk found.
+   * @throws UniqueViolation Thrown if there is an existing record with same pk found.
    */
-  EntityT create(EntityT record) throws IllegalArgumentException, IOException;
+  EntityT create(EntityT record) throws UniqueViolation, IOException;
 
   /**
    * Removes a record by a given primary key value.
    *
    * @param pk Primary key to remove a record by.
    * @return Removed record.
-   * @throws NoSuchElementException Thrown if no element found by given `pk`.
+   * @throws NotFound Thrown if no element found by given `pk`.
    */
-  EntityT delete(PrimaryKeyT pk) throws NoSuchElementException;
+  EntityT delete(PrimaryKeyT pk) throws NotFound;
 }

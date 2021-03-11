@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.TestUtils;
 import shortener.database.entities.UserSession;
+import shortener.exceptions.database.UniqueViolation;
 
 
 public class UserSessionTableTest {
@@ -51,7 +52,7 @@ public class UserSessionTableTest {
 
     Assertions.assertThatThrownBy(() -> {
       table.prepareRecordForCreation(new UserSession(1L, "another-token-token"));
-    }).isInstanceOf(IllegalArgumentException.class);
+    }).isInstanceOf(UniqueViolation.class);
   }
 
   @Test

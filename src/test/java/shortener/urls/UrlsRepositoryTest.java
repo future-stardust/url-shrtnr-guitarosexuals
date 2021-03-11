@@ -3,9 +3,9 @@ package shortener.urls;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
 import shortener.database.entities.Alias;
+import shortener.exceptions.database.NotFound;
 
 /**
  * A test suite for UrlsRepository class.
@@ -42,7 +42,7 @@ public class UrlsRepositoryTest {
     });
 
     assertThatThrownBy(() -> urlsRepository.get("whoops"),
-      String.valueOf(NoSuchElementException.class));
+      String.valueOf(NotFound.class));
   }
 
   @Test
@@ -53,7 +53,7 @@ public class UrlsRepositoryTest {
     });
 
     assertThatThrownBy(() -> urlsRepository.get("new-alias"),
-      String.valueOf(NoSuchElementException.class));
+      String.valueOf(NotFound.class));
 
     urlsRepository.create(new Alias("new-alias", "http://newexample.org", 1L, 0));
 
@@ -79,7 +79,7 @@ public class UrlsRepositoryTest {
     });
 
     assertThatThrownBy(() -> urlsRepository.delete("whoops"),
-      String.valueOf(NoSuchElementException.class));
+      String.valueOf(NotFound.class));
   }
 
 }

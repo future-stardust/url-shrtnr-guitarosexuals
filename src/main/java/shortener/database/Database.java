@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -15,6 +14,8 @@ import shortener.database.tables.DatabaseTable;
 import shortener.database.tables.UserAliasTable;
 import shortener.database.tables.UserSessionTable;
 import shortener.database.tables.UserTable;
+import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * Database implementation class.
@@ -151,21 +152,21 @@ public class Database {
    * @param <EntityT>     Entity type, inherited from the `databaseTable`
    * @param <PrimaryKeyT> Primary key type, inherited from the `databaseTable`
    * @return Found record.
-   * @throws NoSuchElementException Thrown if no element found by the provided `pk`.
+   * @throws NotFound Thrown if no element found by the provided `pk`.
    * @throws IOException            File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT get(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                             PrimaryKeyT pk)
-      throws NoSuchElementException, IOException {
+      throws NotFound, IOException {
     Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
     return databaseTable.readTable()
         .filter(line -> lineRegex.matcher(line).matches())
         .findFirst()
         .map(databaseTable::deserialize)
-        .orElseThrow(() -> new NoSuchElementException(
-            "No \"" + databaseTable.getTableName() + "\" record found by provided pk=\"" + pk
-                + "\""));
+        .orElseThrow(
+          () -> new NotFound(databaseTable.getTableName(), pk)
+        );
 
   }
 
@@ -178,12 +179,12 @@ public class Database {
    * @param <EntityT>      Entity type, inherited from the `databaseTable`
    * @param <PrimaryKeyT>  Primary key type, inherited from the `databaseTable`
    * @return Created recordToCreate.
-   * @throws IllegalArgumentException Thrown if any table field uniqueness check did not pass.
+   * @throws UniqueViolation Thrown if any table field uniqueness check did not pass.
    * @throws IOException              File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT create(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                                EntityT recordToCreate)
-      throws IllegalArgumentException, IOException {
+      throws UniqueViolation, IOException {
 
     EntityT recordToSave = databaseTable.prepareRecordForCreation(recordToCreate);
 
@@ -202,12 +203,12 @@ public class Database {
    * @param <EntityT>     Entity type, inherited from the `databaseTable`
    * @param <PrimaryKeyT> Primary key type, inherited from the `databaseTable`
    * @return Deleted record.
-   * @throws NoSuchElementException Thrown if no element found by the provided `pk`.
+   * @throws NotFound Thrown if no element found by the provided `pk`.
    * @throws IOException            File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT delete(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                                PrimaryKeyT pk)
-      throws NoSuchElementException, IOException {
+      throws NotFound, IOException {
 
     // Check if the record exists
     final EntityT record = get(databaseTable, pk);

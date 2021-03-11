@@ -4,10 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.database.entities.UserSession;
+import shortener.exceptions.database.NotFound;
 import shortener.users.UserSessionRepository;
 
 @MicronautTest
@@ -31,7 +31,7 @@ public class UserSessionRepositoryTest {
   @Test
   void getNonExistingSessionTest() {
     assertThatThrownBy(() -> userSessionRepository.get("non-existing-token"),
-        String.valueOf(NoSuchElementException.class)
+        String.valueOf(NotFound.class)
     );
   }
 
@@ -70,7 +70,7 @@ public class UserSessionRepositoryTest {
     int expectedSessionCount = userSessionRepository.search().size();
 
     assertThatThrownBy(() -> userSessionRepository.delete("non-existing-token"),
-        String.valueOf(NoSuchElementException.class)
+        String.valueOf(NotFound.class)
     );
     assertThat(userSessionRepository.search().size()).isEqualTo(expectedSessionCount);
   }

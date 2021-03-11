@@ -5,10 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import shortener.database.entities.User;
+import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 import javax.inject.Inject;
 
@@ -42,10 +43,10 @@ public class UserRepositoryTest {
   @Test
   void getNonExistingUserTest() {
     assertThatThrownBy(() -> userRepository.get(10L),
-        String.valueOf(NoSuchElementException.class)
+        String.valueOf(NotFound.class)
     );
     assertThatThrownBy(() -> userRepository.get("notuser@mail.ru"),
-        String.valueOf(NoSuchElementException.class)
+        String.valueOf(NotFound.class)
     );
   }
 
@@ -65,10 +66,10 @@ public class UserRepositoryTest {
 
 
     assertThatThrownBy(() -> userRepository.create(busyMailUser),
-        String.valueOf(IllegalArgumentException.class)
+        String.valueOf(UniqueViolation.class)
     );
     assertThatThrownBy(() -> userRepository.create(busyIdUser),
-        String.valueOf(IllegalArgumentException.class)
+        String.valueOf(UniqueViolation.class)
     );
   }
 
@@ -82,11 +83,11 @@ public class UserRepositoryTest {
   @Test
   void deleteNonExistingUserTest() {
     assertThatThrownBy(() -> userRepository.delete(10L),
-        String.valueOf(NoSuchElementException.class)
+        String.valueOf(NotFound.class)
     );
 
     assertThatThrownBy(() -> userRepository.delete("notuser@mail.ru"),
-        String.valueOf(NoSuchElementException.class)
+        String.valueOf(NotFound.class)
     );
 
     assertThat(userRepository.search()).hasSize(3);

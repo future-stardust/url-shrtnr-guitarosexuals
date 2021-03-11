@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 import javax.inject.Singleton;
 import shortener.database.entities.UserSession;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * UserSession database table implementation.
@@ -46,13 +47,13 @@ public class UserSessionTable implements DatabaseTable<UserSession, Long> {
 
   @Override
   public UserSession prepareRecordForCreation(UserSession recordToCreate)
-      throws IllegalArgumentException, IOException {
+      throws UniqueViolation, IOException {
     boolean sessionForSimilarUserExists =
         readTable().parallel()
             .anyMatch(line -> deserialize(line).userId().equals(recordToCreate.userId()));
 
     if (sessionForSimilarUserExists) {
-      throw new IllegalArgumentException("A session for the provided user already exists");
+      throw new UniqueViolation(TABLE_NAME);
     }
 
     return recordToCreate;
