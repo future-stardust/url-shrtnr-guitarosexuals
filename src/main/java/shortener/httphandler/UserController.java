@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
 import shortener.httphandler.utils.UserDataValidator;
+import shortener.exceptions.database.UniqueViolation;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
 
@@ -94,9 +95,11 @@ public class UserController {
       return HttpResponse.badRequest(e.getMessage());
     }
 
+    final  String hashedPassword = userRepository.hashOut(userPassword, userEmail);
+
     try {
-      userRepository.create(userEmail, userPassword);
-    } catch (IllegalArgumentException e) {
+      userRepository.create(userEmail, hashedPassword);
+    } catch (UniqueViolation exc) {
       return HttpResponse.status(HttpStatus.CONFLICT).body(
           String.format("User %s has already been registered", userEmail)
       );

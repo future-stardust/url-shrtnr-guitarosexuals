@@ -2,10 +2,12 @@ package shortener.urls;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.NoSuchElementException;
+import java.util.List;
 import javax.inject.Singleton;
-import shortener.database.Alias;
 import shortener.database.Repository;
+import shortener.database.entities.Alias;
+import shortener.exceptions.database.NotFound;
+import shortener.exceptions.database.UniqueViolation;
 
 /**
  * A database repository for Urls module.
@@ -22,8 +24,8 @@ public class UrlsRepository implements Repository<Alias, String> {
    */
   public UrlsRepository() {
     aliases = new ArrayList<>(Arrays.asList(
-      new Alias("alias1", "http://example1.org", 1, 0),
-      new Alias("alias2", "http://example2.org", 1, 0)
+      new Alias("alias1", "http://example1.org", 1L, 0),
+      new Alias("alias2", "http://example2.org", 1L, 0)
     ));
   }
 
@@ -41,8 +43,8 @@ public class UrlsRepository implements Repository<Alias, String> {
   }
 
   @Override
-  public Alias[] search() {
-    return aliases.toArray(new Alias[0]);
+  public List<Alias> search() {
+    return aliases;
   }
 
   @Override
@@ -53,14 +55,16 @@ public class UrlsRepository implements Repository<Alias, String> {
       }
     }
 
-    throw new NoSuchElementException();
+    // TODO: get tablename from database's class
+    throw new NotFound("aliases", pk);
   }
 
   @Override
   public Alias create(Alias entity) {
     for (Alias alias : aliases) {
       if (alias.alias().equals(entity.alias())) {
-        throw new IllegalArgumentException();
+        // TODO: tablename from database's class
+        throw new UniqueViolation("aliases");
       }
     }
 
@@ -78,6 +82,7 @@ public class UrlsRepository implements Repository<Alias, String> {
       }
     }
 
-    throw new NoSuchElementException();
+    // TODO: get tablename from database's class
+    throw new NotFound("aliases", pk);
   }
 }

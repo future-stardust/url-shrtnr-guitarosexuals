@@ -3,9 +3,9 @@ package shortener.urls;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.util.NoSuchElementException;
 import org.junit.jupiter.api.Test;
-import shortener.database.Alias;
+import shortener.database.entities.Alias;
+import shortener.exceptions.database.NotFound;
 
 /**
  * A test suite for UrlsRepository class.
@@ -17,8 +17,8 @@ public class UrlsRepositoryTest {
   @Test
   void searchReturnsArrayOfAliases() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
-      new Alias("test-alias1", "http://example1.org", 1, 0),
-      new Alias("test-alias2", "http://example2.org", 1, 0)
+      new Alias("test-alias1", "http://example1.org", 1L, 0),
+      new Alias("test-alias2", "http://example2.org", 1L, 0)
     });
 
     assertThat(urlsRepository.search()).hasSize(2);
@@ -27,8 +27,8 @@ public class UrlsRepositoryTest {
   @Test
   void getReturnsRecordIfFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
-      new Alias("test-alias1", "http://example1.org", 1, 0),
-      new Alias("test-alias2", "http://example2.org", 1, 0)
+      new Alias("test-alias1", "http://example1.org", 1L, 0),
+      new Alias("test-alias2", "http://example2.org", 1L, 0)
     });
 
     assertThat(urlsRepository.get("test-alias1")).isNotNull();
@@ -37,25 +37,25 @@ public class UrlsRepositoryTest {
   @Test
   void getThrowsIfRecordNotFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
-      new Alias("test-alias1", "http://example1.org", 1, 0),
-      new Alias("test-alias2", "http://example2.org", 1, 0)
+      new Alias("test-alias1", "http://example1.org", 1L, 0),
+      new Alias("test-alias2", "http://example2.org", 1L, 0)
     });
 
     assertThatThrownBy(() -> urlsRepository.get("whoops"),
-      String.valueOf(NoSuchElementException.class));
+      String.valueOf(NotFound.class));
   }
 
   @Test
   void insertOneAddsRecord() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
-      new Alias("test-alias1", "http://example1.org", 1, 0),
-      new Alias("test-alias2", "http://example2.org", 1, 0)
+      new Alias("test-alias1", "http://example1.org", 1L, 0),
+      new Alias("test-alias2", "http://example2.org", 1L, 0)
     });
 
     assertThatThrownBy(() -> urlsRepository.get("new-alias"),
-      String.valueOf(NoSuchElementException.class));
+      String.valueOf(NotFound.class));
 
-    urlsRepository.create(new Alias("new-alias", "http://newexample.org", 1, 0));
+    urlsRepository.create(new Alias("new-alias", "http://newexample.org", 1L, 0));
 
     assertThat(urlsRepository.get("new-alias")).isNotNull();
   }
@@ -63,8 +63,8 @@ public class UrlsRepositoryTest {
   @Test
   void deleteRemovesRecordIfFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
-      new Alias("test-alias1", "http://example1.org", 1, 0),
-      new Alias("test-alias2", "http://example2.org", 1, 0)
+      new Alias("test-alias1", "http://example1.org", 1L, 0),
+      new Alias("test-alias2", "http://example2.org", 1L, 0)
     });
 
     assertThat(urlsRepository.delete("test-alias1")).isNotNull();
@@ -74,12 +74,12 @@ public class UrlsRepositoryTest {
   @Test
   void deleteThrowsIfRecordNotFound() {
     UrlsRepository urlsRepository = new UrlsRepository(new Alias[] {
-      new Alias("test-alias1", "http://example1.org", 1, 0),
-      new Alias("test-alias2", "http://example2.org", 1, 0)
+      new Alias("test-alias1", "http://example1.org", 1L, 0),
+      new Alias("test-alias2", "http://example2.org", 1L, 0)
     });
 
     assertThatThrownBy(() -> urlsRepository.delete("whoops"),
-      String.valueOf(NoSuchElementException.class));
+      String.valueOf(NotFound.class));
   }
 
 }

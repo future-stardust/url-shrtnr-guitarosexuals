@@ -11,7 +11,6 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import javax.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @MicronautTest
