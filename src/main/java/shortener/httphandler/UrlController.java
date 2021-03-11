@@ -10,8 +10,11 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import java.io.IOException;
+import java.util.List;
 import javax.inject.Inject;
-import shortener.urls.UrlsRepository;
+import shortener.database.Database;
+import shortener.database.entities.Alias;
 
 /**
  * REST API controller that provides logic for Micronaut framework.
@@ -21,7 +24,7 @@ import shortener.urls.UrlsRepository;
 public class UrlController {
 
   @Inject
-  UrlsRepository urlsRepository;
+  Database db;
 
   /**
    * Entrypoint for shortening urls.
@@ -40,8 +43,12 @@ public class UrlController {
    * @return user's url array
    */
   @Get
-  public String[] getUserUrls() {
-    return new String[]{"Url array"};
+  public HttpResponse<List<Alias>> getUserUrls() {
+    try {
+      return HttpResponse.ok(db.search(db.aliasTable));
+    } catch (IOException exc) {
+      return HttpResponse.serverError();
+    }
   }
 
   /**
@@ -51,7 +58,11 @@ public class UrlController {
    * @return OK/error
    */
   @Delete(value = "/{alias}")
-  public HttpResponse<Object> deleteUrl(@QueryValue String alias) {
-    return HttpResponse.ok();
+  public HttpResponse<Alias> deleteUrl(@QueryValue String alias) {
+    try {
+      return HttpResponse.ok(db.delete(db.aliasTable, alias));
+    } catch (IOException exc) {
+      return HttpResponse.serverError();
+    }
   }
 }
