@@ -30,11 +30,16 @@ public class UserRepository implements Repository<User, Long> {
     emailUserHashMap = new HashMap<>();
     nextId = 3; // TODO: nextId init
 
-    User testUser1 = new User(1L, "drew@ex.com",
-                              "e50f759eddc80daf88e8f2acf87b3a2ccb31ea125f5ffd4db0bbe93d3208f365");
+    User testUser1 = new User(
+        1L,
+        "drew@ex.com",
+        HashFunction.hashOut("Password1", "drew@ex.com"));
 
-    User testUser2 = new User(2L, "max@mail.ru",
-                              "94b478002799d79f4bf297a8c3a1e945f19e11fca59380c9c2c510ac98910452");
+    User testUser2 = new User(
+        2L,
+        "max@mail.ru",
+        HashFunction.hashOut("Password2", "max@mail.ru")
+    );
 
     idUserHashMap.put(testUser1.id(), testUser1);
     idUserHashMap.put(testUser2.id(), testUser2);

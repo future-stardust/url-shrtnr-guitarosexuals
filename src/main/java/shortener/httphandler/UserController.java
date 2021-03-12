@@ -23,7 +23,6 @@ import shortener.exceptions.database.UniqueViolation;
 import shortener.httphandler.utils.UserDataValidator;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
-import shortener.users.protection.HashFunction;
 
 /**
  * REST API Controller with entrypoints related to user.
@@ -98,10 +97,8 @@ public class UserController {
       return HttpResponse.badRequest(e.getMessage());
     }
 
-    final  String hashedPassword = HashFunction.hashOut(userPassword, userEmail);
-
     try {
-      userRepository.create(userEmail, hashedPassword);
+      userRepository.create(userEmail, userPassword);
     } catch (UniqueViolation exc) {
       return HttpResponse.status(HttpStatus.CONFLICT).body(
           String.format("User %s has already been registered", userEmail)
