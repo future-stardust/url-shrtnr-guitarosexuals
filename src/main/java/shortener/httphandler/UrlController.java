@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Principal;
-import java.util.List;
 import javax.inject.Inject;
 import shortener.database.Database;
 import shortener.database.entities.Alias;
@@ -22,6 +21,7 @@ import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
 import shortener.httphandler.utils.ShortenData;
+import shortener.urls.utils.RandomStringGenerator;
 import shortener.users.UserRepository;
 
 /**
@@ -72,16 +72,22 @@ public class UrlController {
     // Create alias records and check for its uniqueness
     if (alias == null || alias.isBlank()) {
       try {
-        urlsRepository.create(shortenData.url(), userId);
+        String randomAlias = RandomStringGenerator.generate(Alias.DEFAULT_RANDOM_ALIAS_LENGTH);
+
+        db.create(db.aliasTable, new Alias(randomAlias, url, userId, 0));
       } catch (UniqueViolation e) {
         return HttpResponse.serverError(
             "Server failed to generate unique alias. Please, contact the administrator");
+      } catch (IOException exc) {
+        return HttpResponse.serverError();
       }
     } else {
       try {
-        urlsRepository.create(shortenData.url(), userId, shortenData.alias());
+        db.create(db.aliasTable, new Alias(alias, url, userId, 0));
       } catch (UniqueViolation e) {
-        return HttpResponse.badRequest(String.format("Specified alias is taken: %s", alias));
+        return HttpResponse.badRequest("Specified alias is taken");
+      } catch (IOException exc) {
+        return HttpResponse.serverError();
       }
     }
 
@@ -94,10 +100,10 @@ public class UrlController {
    * @return user's url array
    */
   @Get
-  public HttpResponse<List<Alias>> getUserUrls(Principal principal) {
+  public HttpResponse<Object> getUserUrls(Principal principal) {
     try {
       String userEmail = principal.getName();
-      User user = db.search(db.userTable, u -> u.email().equals(userEmail), 1).get(0);
+      User user = userRepository.get(userEmail);
 
       if (user == null) {
         return HttpResponse.unauthorized();
@@ -116,18 +122,20 @@ public class UrlController {
    * @return OK/error
    */
   @Delete(value = "/{alias}")
-  public HttpResponse<Alias> deleteUrl(@QueryValue String alias, Principal principal) {
+  public HttpResponse<Object> deleteUrl(@QueryValue String alias, Principal principal) {
     try {
       String userEmail = principal.getName();
-      User user = db.search(db.userTable, u -> u.email().equals(userEmail), 1).get(0);
+      User user = userRepository.get(userEmail);
 
       Alias aliasToDelete = db.get(db.aliasTable, alias);
 
       if (!aliasToDelete.userId().equals(user.id())) {
-        return HttpResponse.unauthorized();
+        throw new NotFound(db.aliasTable.getTableName(), alias);
       }
 
       return HttpResponse.ok(db.delete(db.aliasTable, alias));
+    } catch (NotFound exc) {
+      return HttpResponse.notFound();
     } catch (IOException exc) {
       return HttpResponse.serverError();
     }

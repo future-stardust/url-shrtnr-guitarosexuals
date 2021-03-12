@@ -100,6 +100,7 @@ public class Database {
       throws IOException {
     return databaseTable.readTable()
         .parallel()
+        .filter(line -> line != null && !line.isBlank())
         .map(databaseTable::deserialize)
         .collect(Collectors.toList());
   }
@@ -117,6 +118,7 @@ public class Database {
                                         Predicate<EntityT> predicate) throws IOException {
     return databaseTable.readTable()
         .parallel()
+        .filter(line -> line != null && !line.isBlank())
         .map(databaseTable::deserialize)
         .filter(predicate)
         .collect(Collectors.toList());
@@ -138,6 +140,7 @@ public class Database {
       throws IOException {
     return databaseTable.readTable()
         .parallel()
+        .filter(line -> line != null && !line.isBlank())
         .map(databaseTable::deserialize)
         .filter(predicate)
         .limit(limit)
