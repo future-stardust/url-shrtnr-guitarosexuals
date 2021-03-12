@@ -29,7 +29,7 @@ public class UrlControllerTest {
   void setupAuth() {
     var userData = new UserData(
         "drew@ex.com",
-        "qwerty123"
+        "Password1"
     );
 
     HttpRequest<UserData> request = HttpRequest.POST("/users/signin", userData);

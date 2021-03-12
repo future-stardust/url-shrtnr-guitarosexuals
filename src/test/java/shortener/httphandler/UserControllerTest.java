@@ -245,4 +245,25 @@ public class UserControllerTest {
 
     assertThat(userNotAuthorizedException.getMessage()).contains("Unauthorized");
   }
+
+  @Test
+  void signUpAndSignInScenario() {
+    var user = new UserData("anotheruser@mail.com", "CoolPasswd123");
+
+    HttpRequest<String> signUpRequest = HttpRequest.POST("/users/signup", gson.toJson(user));
+    HttpResponse<String> signUpResponse = client.toBlocking().exchange(signUpRequest);
+
+    HttpRequest<String> signInRequest = HttpRequest
+        .POST("/users/signin", gson.toJson(user));
+
+    HttpResponse<String> signInResponse = client.toBlocking().exchange(
+        signInRequest,
+        String.class
+    );
+
+    assertThat((CharSequence) signUpResponse.getStatus()).isEqualTo(HttpStatus.CREATED);
+    assertThat((CharSequence) signInResponse.getStatus()).isEqualTo(HttpStatus.OK);
+    assertThat(signInResponse.body()).isNotNull();
+    assertThat(signInResponse.body()).contains("access_token");
+  }
 }

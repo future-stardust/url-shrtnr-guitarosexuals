@@ -18,6 +18,8 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.Email;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import shortener.exceptions.database.NotFound;
 import shortener.users.UserRepository;
 import shortener.users.protection.HashFunction;
@@ -51,8 +53,9 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
     return Flowable.create(emitter -> {
       try {
         final String userPassword = userRepository.getUserPassword(entryEmail);
+        final String hashedEntryPassword = HashFunction.hashOut(entryPassword, entryEmail);
 
-        if (Objects.equals(HashFunction.hashOut(entryPassword, entryEmail), userPassword)) {
+        if (Objects.equals(hashedEntryPassword, userPassword)) {
           final UserDetails userDetails = new UserDetails(entryEmail,
               new ArrayList<>(Collections.singletonList("USER")));
 
