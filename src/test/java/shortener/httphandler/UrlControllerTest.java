@@ -22,11 +22,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import shortener.database.Database;
 import shortener.database.entities.Alias;
+import shortener.database.entities.User;
+import shortener.database.entities.UserSession;
 import shortener.exceptions.database.UniqueViolation;
 import shortener.httphandler.utils.ShortenData;
 import shortener.urls.UrlRepository;
+import shortener.users.UserRepository;
+import shortener.users.UserSessionRepository;
+import shortener.users.protection.HashFunction;
 
 
 @MicronautTest
@@ -44,21 +48,43 @@ public class UrlControllerTest {
   @Inject
   UrlRepository urlRepository;
 
+  @Inject
+  UserRepository userRepository;
+
+  @Inject
+  UserSessionRepository userSessionRepository;
+
   @MockBean(UrlRepository.class)
   public UrlRepository mockUrlRepository() {
     return Mockito.mock(UrlRepository.class);
   }
 
-  @MockBean(Database.class)
-  public Database mockDb() {
-    return Mockito.mock(Database.class);
+  @MockBean(UserRepository.class)
+  public UserRepository mockUserRepository() {
+    return Mockito.mock(UserRepository.class);
+  }
+
+  @MockBean(UserSessionRepository.class)
+  public UserSessionRepository mockUserSessionRepository() {
+    return Mockito.mock(UserSessionRepository.class);
+  }
+
+  @BeforeEach
+  void mockAuthData() {
+    var testUser =
+        new User(1L, "test@email.com", HashFunction.hashOut("pa$$word", "test@email.com"));
+
+    Mockito.when(userRepository.getByEmail(Mockito.eq(testUser.email()))).thenReturn(testUser);
+
+    Mockito.when(userSessionRepository.get(Mockito.anyString()))
+        .thenReturn(new UserSession(1L, "token"));
   }
 
   @BeforeEach
   void setupAuth() {
     var userData = new UserData(
-        "drew@ex.com",
-        "Password1"
+        "test@email.com",
+        "pa$$word"
     );
 
     HttpRequest<UserData> request = HttpRequest.POST("/users/signin", userData);
