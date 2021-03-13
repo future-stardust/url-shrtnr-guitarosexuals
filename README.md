@@ -18,13 +18,16 @@ After the third laboratory assignment groups will switch projects with one anoth
 all projects have to have the same high-level structure. Also, this is the reason why we will not
 modify project dependencies.
 
-There are FOUR modules:
+There are four modules:
 - `httphandler` - **HTTP Frontend** - Handles HTTP requests, provides REST API
 - `users` - **Users** - Authenticates and manages users
 - `urls` - **URLs** - Operates URLs (creation, usage, removal)
 - `database` - **Database** - Handles all DB operations and file system interaction
 
-## Environment prerequisites
+## Requirements
+
+### Host Server
+Operation System: UNIX-like
 
 ### Java
 This is a Java project, so you will need an environment with installed [JDK] 15. For installation, 
