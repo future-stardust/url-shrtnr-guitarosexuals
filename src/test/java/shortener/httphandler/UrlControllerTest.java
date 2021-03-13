@@ -113,7 +113,7 @@ public class UrlControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("Url successfully shortened");
+    assertThat(response.body()).contains("URL successfully shortened");
   }
 
   @Test
@@ -135,7 +135,7 @@ public class UrlControllerTest {
     );
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.body()).contains("Url successfully shortened");
+    assertThat(response.body()).contains("URL successfully shortened");
   }
 
   @Test
@@ -160,7 +160,8 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).contains("Invalid data");
+    // check prefix
+    assertThat(emptyDataException.getMessage()).startsWith("Invalid data:");
   }
 
   @Test
@@ -185,7 +186,63 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).contains("Invalid url");
+    assertThat(emptyDataException.getMessage()).startsWith("Invalid URL: ");
+  }
+
+  @Test
+  void shortenUrlAnotherWrongUrl() {
+    Mockito.when(urlRepository.create(Mockito.any()))
+        .thenReturn(new Alias("custom_alias", "https://google.com", 1L));
+
+    String uri = "/urls/shorten";
+    ShortenData shortenData = new ShortenData(
+        "/r/some-alias",
+        "randomalias"
+    );
+
+    HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
+
+    Throwable emptyDataException = Assertions.assertThrows(
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            requestWithAuth,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
+    );
+
+    assertThat(emptyDataException.getMessage()).startsWith("Invalid URL: ");
+  }
+
+  @Test
+  void shortenUrlLocalUrl() {
+    Mockito.when(urlRepository.create(Mockito.any()))
+        .thenReturn(new Alias("custom_alias", "https://google.com", 1L));
+
+    // get server host & port (port randomizes each tests)
+    final String host = embeddedServer.getHost();
+    final int port = embeddedServer.getPort();
+
+    String uri = "/urls/shorten";
+    ShortenData shortenData = new ShortenData(
+        String.format("http://%s:%s/r/some-alias", host, port),
+        "nevemind"
+    );
+
+    HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
+
+    Throwable emptyDataException = Assertions.assertThrows(
+        HttpClientResponseException.class,
+        () -> client.toBlocking().exchange(
+            requestWithAuth,
+            Argument.of(String.class),
+            Argument.of(String.class)
+        )
+    );
+
+    Assertions.assertEquals(
+        "Invalid data: Local URLs are not allowed", emptyDataException.getMessage()
+    );
   }
 
   @Test
