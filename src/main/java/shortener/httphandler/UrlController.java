@@ -10,15 +10,18 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Principal;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
+import shortener.database.Database;
+import shortener.database.entities.Alias;
+import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
 import shortener.httphandler.utils.ShortenData;
-import shortener.urls.UrlsRepository;
+import shortener.urls.utils.RandomStringGenerator;
 import shortener.users.UserRepository;
 
 /**
@@ -29,7 +32,7 @@ import shortener.users.UserRepository;
 public class UrlController {
 
   @Inject
-  UrlsRepository urlsRepository;
+  Database db;
 
   @Inject
   UserRepository userRepository;
@@ -69,34 +72,47 @@ public class UrlController {
     // Create alias records and check for its uniqueness
     if (alias == null || alias.isBlank()) {
       try {
-        urlsRepository.create(shortenData.url(), userId);
+        String randomAlias = RandomStringGenerator.generate(Alias.ALIAS_LENGTH_DEFAULT);
+
+        db.create(db.aliasTable, new Alias(randomAlias, url, userId, 0));
       } catch (UniqueViolation e) {
         return HttpResponse.serverError(
             "Server failed to generate unique alias. Please, contact the administrator");
+      } catch (IOException exc) {
+        return HttpResponse.serverError();
       }
     } else {
       try {
-        urlsRepository.create(shortenData.url(), userId, shortenData.alias());
+        db.create(db.aliasTable, new Alias(alias, url, userId, 0));
       } catch (UniqueViolation e) {
-        return HttpResponse.badRequest(String.format("Specified alias is taken: %s", alias));
+        return HttpResponse.badRequest("Specified alias is taken");
+      } catch (IOException exc) {
+        return HttpResponse.serverError();
       }
     }
 
     return HttpResponse.created("Url successfully shortened");
   }
 
-  // TODO: temporary implementation
   /**
    * Entrypoint for getting user's url array.
    *
    * @return user's url array
    */
   @Get
-  public HttpResponse<String> getUserUrls(Principal principal) {
-    Long userId = userRepository.get(principal.getName()).id();
-    return HttpResponse
-        .ok(urlsRepository.search().stream().filter(el -> el.userId().equals(userId)).collect(
-            Collectors.toList()).toString());
+  public HttpResponse<Object> getUserUrls(Principal principal) {
+    try {
+      String userEmail = principal.getName();
+      User user = userRepository.get(userEmail);
+
+      if (user == null) {
+        return HttpResponse.unauthorized();
+      }
+
+      return HttpResponse.ok(db.search(db.aliasTable, alias -> alias.userId().equals(user.id())));
+    } catch (IOException exc) {
+      return HttpResponse.serverError();
+    }
   }
 
   /**
@@ -106,7 +122,22 @@ public class UrlController {
    * @return OK/error
    */
   @Delete(value = "/{alias}")
-  public HttpResponse<Object> deleteUrl(@QueryValue String alias) {
-    return HttpResponse.ok();
+  public HttpResponse<Object> deleteUrl(@QueryValue String alias, Principal principal) {
+    try {
+      String userEmail = principal.getName();
+      User user = userRepository.get(userEmail);
+
+      Alias aliasToDelete = db.get(db.aliasTable, alias);
+
+      if (!aliasToDelete.userId().equals(user.id())) {
+        throw new NotFound(db.aliasTable.getTableName(), alias);
+      }
+
+      return HttpResponse.ok(db.delete(db.aliasTable, alias));
+    } catch (NotFound exc) {
+      return HttpResponse.notFound();
+    } catch (IOException exc) {
+      return HttpResponse.serverError();
+    }
   }
 }

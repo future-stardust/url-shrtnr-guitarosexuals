@@ -10,4 +10,6 @@ public record Alias(String alias,
                     String url,
                     Long userId,
                     Integer usages) {
+
+  public static final Integer ALIAS_LENGTH_DEFAULT = 5;
 }

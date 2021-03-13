@@ -6,12 +6,13 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.inject.Inject;
+import shortener.database.Database;
 import shortener.database.entities.Alias;
 import shortener.exceptions.database.NotFound;
-import shortener.urls.UrlsRepository;
 
 /**
  * REST API controller that provides logic for Micronaut framework.
@@ -21,7 +22,7 @@ import shortener.urls.UrlsRepository;
 public class RedirectController {
 
   @Inject
-  UrlsRepository urlsRepository;
+  Database db;
 
   /**
    * Entrypoint for redirecting to a Alias.
@@ -31,13 +32,14 @@ public class RedirectController {
    */
   @Get(value = "/{alias}")
   public HttpResponse<Object> redirect(@QueryValue String alias) throws URISyntaxException {
-    Alias aliasRecord;
     try {
-      aliasRecord = urlsRepository.get(alias);
+      Alias aliasRecord = db.get(db.aliasTable, alias);
+
+      return HttpResponse.redirect(new URI(aliasRecord.url()));
     } catch (NotFound exc) {
       return HttpResponse.notFound("Alias not found.");
+    } catch (IOException exc) {
+      return HttpResponse.serverError();
     }
-
-    return HttpResponse.redirect(new URI(aliasRecord.url()));
   }
 }
