@@ -1,6 +1,7 @@
 package shortener.httphandler;
 
 import com.google.gson.Gson;
+import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import shortener.httphandler.utils.JsonResponse;
 import shortener.users.UserRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,9 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(Lifecycle.PER_CLASS)
 public class UserControllerTest {
 
-  record UserData(String email, String password) {
-
-  }
+  record UserData(String email, String password) {}
 
   Gson gson = new Gson();
 
@@ -42,6 +42,10 @@ public class UserControllerTest {
 
   @Inject
   UserRepository userRepository;
+
+  private static final Integer SIGNUP_ERROR_CODE = 0;
+  private static final Integer SIGN_IN_ERROR_CODE = 1;
+  private static final Integer SIGN_OUT_ERROR_CODE = 2;
 
   @BeforeAll
   void setup() {
@@ -74,7 +78,13 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(emptyUserException.getMessage()).contains("Credentials should not be empty");
+
+    String jsonResponse = JsonResponse.createError(
+        SIGNUP_ERROR_CODE,
+        "Credentials should not be empty."
+    );
+
+    assertThat(emptyUserException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -93,7 +103,13 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(emptyUserException.getMessage()).contains("has already been registered");
+
+    String jsonResponse = JsonResponse.createError(
+        SIGNUP_ERROR_CODE,
+        String.format("User %s has already been registered.", existingUser.email)
+    );
+
+    Assertions.assertEquals(emptyUserException.getMessage(), jsonResponse);
   }
 
   @Test
@@ -130,7 +146,13 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(wrongPasswordUserException.getMessage()).contains("Password");
+
+    String jsonResponse = JsonResponse.createError(
+        SIGNUP_ERROR_CODE,
+        "Password must be at least 8 characters long."
+    );
+
+    assertThat(wrongPasswordUserException.getMessage()).contains(jsonResponse);
   }
 
   @Test

@@ -1,5 +1,6 @@
 package shortener.httphandler;
 
+import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -20,6 +21,7 @@ import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.JsonResponse;
 import shortener.httphandler.utils.UserDataValidator;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
@@ -38,6 +40,10 @@ public class UserController {
   @Inject
   @Client("/")
   RxHttpClient client;
+
+  private static final Integer SIGNUP_ERROR_CODE = 0;
+  private static final Integer SIGN_IN_ERROR_CODE = 1;
+  private static final Integer SIGN_OUT_ERROR_CODE = 2;
 
   /**
    * Proxy method for login endpoint.
@@ -84,7 +90,12 @@ public class UserController {
   public HttpResponse<String> signUp(@Body UserData userData) {
     if (userData.email() == null || userData.email().isBlank()
         || userData.password() == null || userData.password().isBlank()) {
-      return HttpResponse.badRequest("Credentials should not be empty.");
+      String jsonResponse = JsonResponse.createError(
+          SIGNUP_ERROR_CODE,
+          "Credentials should not be empty."
+      );
+
+      return HttpResponse.badRequest(jsonResponse);
     }
 
     final @Email String userEmail = userData.email();
@@ -94,18 +105,26 @@ public class UserController {
       UserDataValidator.validateEmail(userEmail);
       UserDataValidator.validatePassword(userPassword);
     } catch (InvalidCredentials e) {
-      return HttpResponse.badRequest(e.getMessage());
+      String jsonResponse = JsonResponse.createError(
+          SIGNUP_ERROR_CODE,
+          e.getMessage()
+      );
+
+      return HttpResponse.badRequest(jsonResponse);
     }
 
     try {
       userRepository.create(userEmail, userPassword);
     } catch (UniqueViolation exc) {
-      return HttpResponse.status(HttpStatus.CONFLICT).body(
-          String.format("User %s has already been registered", userEmail)
+      String jsonResponse = JsonResponse.createError(
+          SIGNUP_ERROR_CODE,
+          String.format("User %s has already been registered.", userEmail)
       );
+
+      return HttpResponse.status(HttpStatus.CONFLICT).body(jsonResponse);
     }
 
-    return HttpResponse.created("User successfully registered");
+    return HttpResponse.created("User was successfully registered.");
   }
 
   /**
@@ -121,7 +140,10 @@ public class UserController {
     Optional<String> authorizationHeaderOptional = httpHeaders.getAuthorization();
 
     if (authorizationHeaderOptional.isPresent()) {
-      String accessToken = authorizationHeaderOptional.get().replace("Bearer ", "");
+      String accessToken = authorizationHeaderOptional.get().replace(
+          "Bearer ",
+          ""
+      );
       userSessionRepository.delete(accessToken);
       return HttpResponse.ok("Successfully logged out");
     }
