@@ -9,7 +9,6 @@ import io.micronaut.security.rules.SecurityRule;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.inject.Inject;
-import shortener.database.Database;
 import shortener.database.entities.Alias;
 import shortener.exceptions.database.NotFound;
 import shortener.urls.UrlRepository;
@@ -37,7 +36,7 @@ public class RedirectController {
 
       return HttpResponse.redirect(new URI(aliasRecord.url()));
     } catch (NotFound exc) {
-      return HttpResponse.notFound("Alias not found.");
+      return HttpResponse.notFound("No URL corresponds to given alias.");
     }
   }
 }

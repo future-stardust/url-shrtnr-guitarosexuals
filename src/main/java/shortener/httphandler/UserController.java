@@ -1,6 +1,5 @@
 package shortener.httphandler;
 
-import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;

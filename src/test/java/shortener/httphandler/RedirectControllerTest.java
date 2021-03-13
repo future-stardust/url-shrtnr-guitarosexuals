@@ -95,6 +95,6 @@ public class RedirectControllerTest {
         )
     );
 
-    assertEquals("Alias not found.", notFoundException.getMessage());
+    assertEquals("No URL corresponds to given alias.", notFoundException.getMessage());
   }
 }
