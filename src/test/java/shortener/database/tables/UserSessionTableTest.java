@@ -1,5 +1,6 @@
 package shortener.database.tables;
 
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import shortener.database.entities.UserSession;
 import shortener.exceptions.database.UniqueViolation;
 
 
+@MicronautTest
 public class UserSessionTableTest {
 
   private static final String TEST_ROOT_DIRECTORY = "table-test-db";
@@ -47,23 +49,23 @@ public class UserSessionTableTest {
 
   @Test
   void prepareRecordForCreationThrowsIfSimilarRecordExists() throws IOException {
-    Files.write(table.getWritableFilePath(), "1|token-token\n".getBytes(),
+    Files.write(table.getWritableFilePath(), "token-token|1\n".getBytes(),
         StandardOpenOption.APPEND);
 
     Assertions.assertThatThrownBy(() -> {
-      table.prepareRecordForCreation(new UserSession(1L, "another-token-token"));
+      table.prepareRecordForCreation(new UserSession(1L, "token-token"));
     }).isInstanceOf(UniqueViolation.class);
   }
 
   @Test
   void serializeWorksCorrectly() {
     Assertions.assertThat(table.serialize(new UserSession(1L, "token-token")))
-        .isEqualTo("1|token-token");
+        .isEqualTo("token-token|1");
   }
 
   @Test
   void deserializeWorksCorrectly() {
-    Assertions.assertThat(table.deserialize("1|token-token"))
+    Assertions.assertThat(table.deserialize("token-token|1"))
         .isEqualTo(new UserSession(1L, "token-token"));
   }
 

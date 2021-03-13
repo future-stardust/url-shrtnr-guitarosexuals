@@ -10,18 +10,16 @@ import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Principal;
 import javax.inject.Inject;
-import shortener.database.Database;
 import shortener.database.entities.Alias;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
 import shortener.httphandler.utils.ShortenData;
-import shortener.urls.utils.RandomStringGenerator;
+import shortener.urls.UrlRepository;
 import shortener.users.UserRepository;
 
 /**
@@ -32,7 +30,7 @@ import shortener.users.UserRepository;
 public class UrlController {
 
   @Inject
-  Database db;
+  UrlRepository urlRepository;
 
   @Inject
   UserRepository userRepository;
@@ -64,30 +62,19 @@ public class UrlController {
     // User existing check
     Long userId;
     try {
-      userId = userRepository.get(userEmail).id();
+      userId = userRepository.getByEmail(userEmail).id();
     } catch (NotFound e) {
       return HttpResponse.unauthorized().body(String.format("User %s not registered", userEmail));
     }
 
     // Create alias records and check for its uniqueness
     if (alias == null || alias.isBlank()) {
-      try {
-        String randomAlias = RandomStringGenerator.generate(Alias.ALIAS_LENGTH_DEFAULT);
-
-        db.create(db.aliasTable, new Alias(randomAlias, url, userId, 0));
-      } catch (UniqueViolation e) {
-        return HttpResponse.serverError(
-            "Server failed to generate unique alias. Please, contact the administrator");
-      } catch (IOException exc) {
-        return HttpResponse.serverError();
-      }
+      urlRepository.createRandomAlias(url, userId);
     } else {
       try {
-        db.create(db.aliasTable, new Alias(alias, url, userId, 0));
+        urlRepository.create(new Alias(alias, url, userId));
       } catch (UniqueViolation e) {
         return HttpResponse.badRequest("Specified alias is taken");
-      } catch (IOException exc) {
-        return HttpResponse.serverError();
       }
     }
 
@@ -101,18 +88,16 @@ public class UrlController {
    */
   @Get
   public HttpResponse<Object> getUserUrls(Principal principal) {
+    String userEmail = principal.getName();
+
+    User user;
     try {
-      String userEmail = principal.getName();
-      User user = userRepository.get(userEmail);
-
-      if (user == null) {
-        return HttpResponse.unauthorized();
-      }
-
-      return HttpResponse.ok(db.search(db.aliasTable, alias -> alias.userId().equals(user.id())));
-    } catch (IOException exc) {
-      return HttpResponse.serverError();
+      user = userRepository.getByEmail(userEmail);
+    } catch (NotFound exc) {
+      return HttpResponse.unauthorized();
     }
+
+    return HttpResponse.ok(urlRepository.searchByUserId(user.id()));
   }
 
   /**
@@ -123,21 +108,25 @@ public class UrlController {
    */
   @Delete(value = "/{alias}")
   public HttpResponse<Object> deleteUrl(@QueryValue String alias, Principal principal) {
-    try {
-      String userEmail = principal.getName();
-      User user = userRepository.get(userEmail);
+    String userEmail = principal.getName();
 
-      Alias aliasToDelete = db.get(db.aliasTable, alias);
+    User user;
+    try {
+      user = userRepository.getByEmail(userEmail);
+    } catch (NotFound exc) {
+      return HttpResponse.unauthorized();
+    }
+
+    try {
+      Alias aliasToDelete = urlRepository.get(alias);
 
       if (!aliasToDelete.userId().equals(user.id())) {
-        throw new NotFound(db.aliasTable.getTableName(), alias);
+        throw new NotFound("aliases", alias);
       }
 
-      return HttpResponse.ok(db.delete(db.aliasTable, alias));
+      return HttpResponse.ok(urlRepository.delete(alias));
     } catch (NotFound exc) {
       return HttpResponse.notFound();
-    } catch (IOException exc) {
-      return HttpResponse.serverError();
     }
   }
 }

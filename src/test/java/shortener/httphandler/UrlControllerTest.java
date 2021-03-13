@@ -2,6 +2,7 @@ package shortener.httphandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
@@ -15,17 +16,21 @@ import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.io.IOException;
 import java.util.Collections;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import shortener.database.Database;
 import shortener.database.entities.Alias;
+import shortener.database.entities.User;
+import shortener.database.entities.UserSession;
 import shortener.exceptions.database.UniqueViolation;
 import shortener.httphandler.utils.ShortenData;
+import shortener.urls.UrlRepository;
+import shortener.users.UserRepository;
+import shortener.users.UserSessionRepository;
+import shortener.users.protection.HashFunction;
 
 
 @MicronautTest
@@ -41,18 +46,45 @@ public class UrlControllerTest {
   String token;
 
   @Inject
-  Database db;
+  UrlRepository urlRepository;
 
-  @MockBean(Database.class)
-  public Database mockDb() {
-    return Mockito.mock(Database.class);
+  @Inject
+  UserRepository userRepository;
+
+  @Inject
+  UserSessionRepository userSessionRepository;
+
+  @MockBean(UrlRepository.class)
+  public UrlRepository mockUrlRepository() {
+    return Mockito.mock(UrlRepository.class);
+  }
+
+  @MockBean(UserRepository.class)
+  public UserRepository mockUserRepository() {
+    return Mockito.mock(UserRepository.class);
+  }
+
+  @MockBean(UserSessionRepository.class)
+  public UserSessionRepository mockUserSessionRepository() {
+    return Mockito.mock(UserSessionRepository.class);
+  }
+
+  @BeforeEach
+  void mockAuthData() {
+    var testUser =
+        new User(1L, "test@email.com", HashFunction.hashOut("pa$$word", "test@email.com"));
+
+    Mockito.when(userRepository.getByEmail(Mockito.eq(testUser.email()))).thenReturn(testUser);
+
+    Mockito.when(userSessionRepository.get(Mockito.anyString()))
+        .thenReturn(new UserSession(1L, "token"));
   }
 
   @BeforeEach
   void setupAuth() {
     var userData = new UserData(
-        "drew@ex.com",
-        "Password1"
+        "test@email.com",
+        "pa$$word"
     );
 
     HttpRequest<UserData> request = HttpRequest.POST("/users/signin", userData);
@@ -65,9 +97,9 @@ public class UrlControllerTest {
   }
 
   @Test
-  void shortenUrlWithRandomAlias_correctData() throws IOException {
-    Mockito.when(db.create(Mockito.any(), Mockito.any()))
-        .thenReturn(new Alias("test", "https://google.com", 1L, 0));
+  void shortenUrlWithRandomAlias_correctData() {
+    Mockito.when(urlRepository.createRandomAlias(Mockito.any(), Mockito.any()))
+        .thenReturn(new Alias("test", "https://google.com", 1L));
 
     String uri = "/urls/shorten";
     ShortenData shortenData = new ShortenData(
@@ -88,9 +120,9 @@ public class UrlControllerTest {
   }
 
   @Test
-  void shortenUrlWithCustomAlias_correctData() throws IOException {
-    Mockito.when(db.create(Mockito.any(), Mockito.any()))
-        .thenReturn(new Alias("custom_alias", "https://google.com", 1L, 0));
+  void shortenUrlWithCustomAlias_correctData() {
+    Mockito.when(urlRepository.create(Mockito.any()))
+        .thenReturn(new Alias("custom_alias", "https://google.com", 1L));
 
     String uri = "/urls/shorten";
     ShortenData shortenData = new ShortenData(
@@ -110,9 +142,9 @@ public class UrlControllerTest {
   }
 
   @Test
-  void shortenUrlWithCustomAlias_emptyData() throws IOException {
-    Mockito.when(db.create(Mockito.any(), Mockito.any()))
-        .thenReturn(new Alias("custom_alias", "https://google.com", 1L, 0));
+  void shortenUrlWithCustomAlias_emptyData() {
+    Mockito.when(urlRepository.create(Mockito.any()))
+        .thenReturn(new Alias("custom_alias", "https://google.com", 1L));
 
     String uri = "/urls/shorten";
     ShortenData shortenData = new ShortenData(
@@ -135,9 +167,9 @@ public class UrlControllerTest {
   }
 
   @Test
-  void shortenUrlWithCustomAlias_incorrectUrlParam() throws IOException {
-    Mockito.when(db.create(Mockito.any(), Mockito.any()))
-        .thenReturn(new Alias("custom_alias", "https://google.com", 1L, 0));
+  void shortenUrlWithCustomAlias_incorrectUrlParam() {
+    Mockito.when(urlRepository.create(Mockito.any()))
+        .thenReturn(new Alias("custom_alias", "https://google.com", 1L));
 
     String uri = "/urls/shorten";
     ShortenData shortenData = new ShortenData(
@@ -160,8 +192,8 @@ public class UrlControllerTest {
   }
 
   @Test
-  void shortenUrlWithCustomAlias_takenAlias() throws IOException {
-    Mockito.when(db.create(Mockito.any(), Mockito.any()))
+  void shortenUrlWithCustomAlias_takenAlias() {
+    Mockito.when(urlRepository.create(Mockito.any()))
         .thenThrow(new UniqueViolation("aliases"));
 
     String uri = "/urls/shorten";
@@ -186,10 +218,10 @@ public class UrlControllerTest {
   }
 
   @Test
-  void getUserUrls() throws IOException {
-    Alias alias = new Alias("alias", "http://example.com", 1L, 0);
+  void getUserUrls() throws JsonProcessingException {
+    Alias alias = new Alias("alias", "http://example.com", 1L);
 
-    Mockito.when(db.search(Mockito.any(), Mockito.any()))
+    Mockito.when(urlRepository.searchByUserId(Mockito.any()))
         .thenReturn(Collections.singletonList(alias));
 
     String uri = "/urls";
@@ -208,13 +240,14 @@ public class UrlControllerTest {
   }
 
   @Test
-  void deleteUrl() throws IOException {
-    Alias aliasToDelete = new Alias("someAlias", "http://example.com", 1L, 0);
+  void deleteUrl() throws JsonProcessingException {
+    Alias aliasToDelete = new Alias("someAlias", "http://example.com", 1L);
 
-    Mockito.when(db.get(Mockito.any(), Mockito.eq(aliasToDelete.alias())))
+    Mockito.when(urlRepository.get(Mockito.eq(aliasToDelete.alias())))
         .thenReturn(aliasToDelete);
 
-    Mockito.when(db.delete(Mockito.any(), Mockito.eq(aliasToDelete.alias())))
+    Mockito
+        .when(urlRepository.delete(Mockito.eq(aliasToDelete.alias())))
         .thenReturn(aliasToDelete);
 
     String uri = "/urls/someAlias";
@@ -231,13 +264,14 @@ public class UrlControllerTest {
 
 
   @Test
-  void deleteUrlThrowsIfUserTriesToDeleteNotOwnAlias() throws IOException {
-    Alias aliasToDelete = new Alias("someAlias", "http://example.com", 1337L, 0);
+  void deleteUrlThrowsIfUserTriesToDeleteNotOwnAlias() {
+    Alias aliasToDelete = new Alias("someAlias", "http://example.com", 1337L);
 
-    Mockito.when(db.get(Mockito.any(), Mockito.eq(aliasToDelete.alias())))
+    Mockito.when(urlRepository.get(Mockito.eq(aliasToDelete.alias())))
         .thenReturn(aliasToDelete);
 
-    Mockito.when(db.delete(Mockito.any(), Mockito.eq(aliasToDelete.alias())))
+    Mockito
+        .when(urlRepository.delete(Mockito.eq(aliasToDelete.alias())))
         .thenReturn(aliasToDelete);
 
     String uri = "/urls/someAlias";

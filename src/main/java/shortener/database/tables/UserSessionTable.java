@@ -12,7 +12,7 @@ import shortener.exceptions.database.UniqueViolation;
  * UserSession database table implementation.
  */
 @Singleton
-public class UserSessionTable implements DatabaseTable<UserSession, Long> {
+public class UserSessionTable implements DatabaseTable<UserSession, String> {
 
   private static final String TABLE_NAME = "usersessions";
 
@@ -50,7 +50,7 @@ public class UserSessionTable implements DatabaseTable<UserSession, Long> {
       throws UniqueViolation, IOException {
     boolean sessionForSimilarUserExists =
         readTable().parallel()
-            .anyMatch(line -> deserialize(line).userId().equals(recordToCreate.userId()));
+            .anyMatch(line -> deserialize(line).token().equals(recordToCreate.token()));
 
     if (sessionForSimilarUserExists) {
       throw new UniqueViolation(TABLE_NAME);
@@ -76,7 +76,7 @@ public class UserSessionTable implements DatabaseTable<UserSession, Long> {
 
   @Override
   public String serialize(UserSession record) {
-    return record.userId() + "|" + record.token();
+    return record.token() + "|" + record.userId();
   }
 
 
@@ -84,6 +84,6 @@ public class UserSessionTable implements DatabaseTable<UserSession, Long> {
   public UserSession deserialize(String serialized) {
     String[] fields = serialized.split("\\|");
 
-    return new UserSession(Long.parseLong(fields[0], 10), fields[1]);
+    return new UserSession(Long.parseLong(fields[1], 10), fields[0]);
   }
 }

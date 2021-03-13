@@ -58,17 +58,17 @@ public class DatabaseTest {
   }
 
   @Test
-  void createThrowsIfRecordIsNotUnique() throws IOException {
+  void createThrowsIfRecordIsNotUnique() {
     db.create(db.userTable, new User(null, "same@email.com", "pa$$word"));
 
     // Try to create a user with same `email` -- unique for a user
-    Assertions.assertThatThrownBy(() -> {
-      db.create(db.userTable, new User(null, "same@email.com", "pa$$word"));
-    }).isInstanceOf(UniqueViolation.class);
+    Assertions.assertThatThrownBy(
+        () -> db.create(db.userTable, new User(null, "same@email.com", "pa$$word"))
+    ).isInstanceOf(UniqueViolation.class);
   }
 
   @Test
-  void searchSuccessfullyReturnsRecords() throws IOException {
+  void searchSuccessfullyReturnsRecords() {
     db.create(db.userTable, new User(null, "1@email.com", "pa$$word"));
     db.create(db.userTable, new User(null, "2@email.com", "pa$$word"));
     db.create(db.userTable, new User(null, "3@email.com", "other-pass"));
@@ -86,7 +86,7 @@ public class DatabaseTest {
   }
 
   @Test
-  void getSuccessfullyRetrievesRecord() throws IOException {
+  void getSuccessfullyRetrievesRecord() {
     User createdRecord = db.create(db.userTable, new User(null, "test@email.com", "pa$$word"));
 
     User record = db.get(db.userTable, createdRecord.id());

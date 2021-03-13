@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import shortener.database.tables.AliasTable;
 import shortener.database.tables.DatabaseTable;
-import shortener.database.tables.UserAliasTable;
 import shortener.database.tables.UserSessionTable;
 import shortener.database.tables.UserTable;
 import shortener.exceptions.database.NotFound;
@@ -27,7 +26,6 @@ public class Database {
 
   public UserTable userTable;
   public AliasTable aliasTable;
-  public UserAliasTable userAliasTable;
   public UserSessionTable userSessionTable;
 
 
@@ -48,7 +46,6 @@ public class Database {
 
     userTable = new UserTable(rootPath);
     aliasTable = new AliasTable(rootPath);
-    userAliasTable = new UserAliasTable(rootPath);
     userSessionTable = new UserSessionTable(rootPath);
   }
 
@@ -83,7 +80,6 @@ public class Database {
     // Init tables
     UserTable.init(rootPath);
     AliasTable.init(rootPath);
-    UserAliasTable.init(rootPath);
     UserSessionTable.init(rootPath);
   }
 
@@ -94,15 +90,18 @@ public class Database {
    * @param databaseTable Database table to operate over. (usage: db.search(db.userTable)).
    * @param <EntityT>     Entity type, inherited from the `databaseTable`
    * @return List of all records.
-   * @throws IOException File system exception.
    */
-  public <EntityT> List<EntityT> search(DatabaseTable<EntityT, ?> databaseTable)
-      throws IOException {
-    return databaseTable.readTable()
-        .parallel()
-        .filter(line -> line != null && !line.isBlank())
-        .map(databaseTable::deserialize)
-        .collect(Collectors.toList());
+  public <EntityT> List<EntityT> search(DatabaseTable<EntityT, ?> databaseTable) {
+    try {
+      return databaseTable.readTable()
+          .parallel()
+          .filter(line -> line != null && !line.isBlank())
+          .map(databaseTable::deserialize)
+          .collect(Collectors.toList());
+    } catch (IOException exc) {
+      throw new RuntimeException("Database operation failure.");
+    }
+
   }
 
   /**
@@ -112,16 +111,19 @@ public class Database {
    * @param predicate     Predicate lambda to filter records by.
    * @param <EntityT>     Entity type, inherited from the `databaseTable`
    * @return List of all records.
-   * @throws IOException File system exception.
    */
   public <EntityT> List<EntityT> search(DatabaseTable<EntityT, ?> databaseTable,
-                                        Predicate<EntityT> predicate) throws IOException {
-    return databaseTable.readTable()
-        .parallel()
-        .filter(line -> line != null && !line.isBlank())
-        .map(databaseTable::deserialize)
-        .filter(predicate)
-        .collect(Collectors.toList());
+                                        Predicate<EntityT> predicate) {
+    try {
+      return databaseTable.readTable()
+          .parallel()
+          .filter(line -> line != null && !line.isBlank())
+          .map(databaseTable::deserialize)
+          .filter(predicate)
+          .collect(Collectors.toList());
+    } catch (IOException exc) {
+      throw new RuntimeException("Database operation failure.");
+    }
   }
 
   /**
@@ -133,18 +135,21 @@ public class Database {
    * @param limit         Amount of records to select.
    * @param <EntityT>     Entity type, inherited from the `databaseTable`
    * @return List of all records.
-   * @throws IOException File system exception.
    */
   public <EntityT> List<EntityT> search(DatabaseTable<EntityT, ?> databaseTable,
-                                        Predicate<EntityT> predicate, long limit)
-      throws IOException {
-    return databaseTable.readTable()
-        .parallel()
-        .filter(line -> line != null && !line.isBlank())
-        .map(databaseTable::deserialize)
-        .filter(predicate)
-        .limit(limit)
-        .collect(Collectors.toList());
+                                        Predicate<EntityT> predicate, long limit) {
+    try {
+      return databaseTable.readTable()
+          .parallel()
+          .filter(line -> line != null && !line.isBlank())
+          .map(databaseTable::deserialize)
+          .filter(predicate)
+          .limit(limit)
+          .collect(Collectors.toList());
+
+    } catch (IOException exc) {
+      throw new RuntimeException("Database operation failure.");
+    }
   }
 
   /**
@@ -156,21 +161,23 @@ public class Database {
    * @param <PrimaryKeyT> Primary key type, inherited from the `databaseTable`
    * @return Found record.
    * @throws NotFound Thrown if no element found by the provided `pk`.
-   * @throws IOException            File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT get(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                             PrimaryKeyT pk)
-      throws NotFound, IOException {
+      throws NotFound {
     Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
-    return databaseTable.readTable()
-        .filter(line -> lineRegex.matcher(line).matches())
-        .findFirst()
-        .map(databaseTable::deserialize)
-        .orElseThrow(
-          () -> new NotFound(databaseTable.getTableName(), pk)
-        );
-
+    try {
+      return databaseTable.readTable()
+          .filter(line -> lineRegex.matcher(line).matches())
+          .findFirst()
+          .map(databaseTable::deserialize)
+          .orElseThrow(
+              () -> new NotFound(databaseTable.getTableName(), pk)
+          );
+    } catch (IOException exc) {
+      throw new RuntimeException("Database operation failure.");
+    }
   }
 
   /**
@@ -183,19 +190,21 @@ public class Database {
    * @param <PrimaryKeyT>  Primary key type, inherited from the `databaseTable`
    * @return Created recordToCreate.
    * @throws UniqueViolation Thrown if any table field uniqueness check did not pass.
-   * @throws IOException              File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT create(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                                EntityT recordToCreate)
-      throws UniqueViolation, IOException {
+      throws UniqueViolation {
+    try {
+      EntityT recordToSave = databaseTable.prepareRecordForCreation(recordToCreate);
 
-    EntityT recordToSave = databaseTable.prepareRecordForCreation(recordToCreate);
+      Files.write(databaseTable.getWritableFilePath(),
+          (databaseTable.serialize(recordToSave) + System.lineSeparator()).getBytes(),
+          StandardOpenOption.APPEND);
 
-    Files.write(databaseTable.getWritableFilePath(),
-        (databaseTable.serialize(recordToSave) + System.lineSeparator()).getBytes(),
-        StandardOpenOption.APPEND);
-
-    return recordToSave;
+      return recordToSave;
+    } catch (IOException exc) {
+      throw new RuntimeException("Database operation failure.");
+    }
   }
 
   /**
@@ -207,25 +216,27 @@ public class Database {
    * @param <PrimaryKeyT> Primary key type, inherited from the `databaseTable`
    * @return Deleted record.
    * @throws NotFound Thrown if no element found by the provided `pk`.
-   * @throws IOException            File system exception.
    */
   public <EntityT, PrimaryKeyT> EntityT delete(DatabaseTable<EntityT, PrimaryKeyT> databaseTable,
                                                PrimaryKeyT pk)
-      throws NotFound, IOException {
+      throws NotFound {
+    try {
+      // Check if the record exists
+      final EntityT record = get(databaseTable, pk);
 
-    // Check if the record exists
-    final EntityT record = get(databaseTable, pk);
+      Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
-    Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
+      String modifiedLines =
+          databaseTable.readTable().filter(line -> !lineRegex.matcher(line).matches())
+              .reduce((acc, line) -> acc + System.lineSeparator() + line).orElse("");
 
-    String modifiedLines =
-        databaseTable.readTable().filter(line -> !lineRegex.matcher(line).matches())
-            .reduce((acc, line) -> acc + System.lineSeparator() + line).orElse("");
+      Files.write(databaseTable.getWritableFilePath(), modifiedLines.getBytes(),
+          StandardOpenOption.TRUNCATE_EXISTING);
 
-    Files.write(databaseTable.getWritableFilePath(), modifiedLines.getBytes(),
-        StandardOpenOption.TRUNCATE_EXISTING);
-
-    return record;
+      return record;
+    } catch (IOException exc) {
+      throw new RuntimeException("Database operation failure.");
+    }
   }
 
 }

@@ -15,7 +15,6 @@ import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import io.reactivex.subscribers.TestSubscriber;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Assertions;
@@ -25,6 +24,7 @@ import org.reactivestreams.Publisher;
 import shortener.database.Database;
 import shortener.database.entities.Alias;
 import shortener.exceptions.database.NotFound;
+import shortener.urls.UrlRepository;
 
 @MicronautTest
 public class RedirectControllerTest {
@@ -39,7 +39,13 @@ public class RedirectControllerTest {
   HttpClient client;
 
   @Inject
-  Database db;
+  UrlRepository urlRepository;
+
+  @MockBean(UrlRepository.class)
+  public UrlRepository mockUrlRepository() {
+    return Mockito.mock(UrlRepository.class);
+  }
+
 
   @MockBean(Database.class)
   public Database mockDb() {
@@ -47,10 +53,10 @@ public class RedirectControllerTest {
   }
 
   @Test
-  void redirectPositive() throws IOException {
+  void redirectPositive() {
     final String url = "https://jsonplaceholder.typicode.com/todos/1";
 
-    Mockito.when(db.get(Mockito.any(), Mockito.any()))
+    Mockito.when(urlRepository.get(Mockito.any()))
         .thenReturn(new Alias("alias1", url, 1L, 0));
 
     MutableHttpRequest<Object> request = HttpRequest.GET(String.format(urlPattern, "alias1"));
@@ -73,8 +79,8 @@ public class RedirectControllerTest {
   }
 
   @Test
-  void redirectNegative() throws IOException {
-    Mockito.when(db.get(Mockito.any(), Mockito.any()))
+  void redirectNegative() {
+    Mockito.when(urlRepository.get(Mockito.any()))
         .thenThrow(new NotFound("aliases", "non-existing-alias"));
 
     MutableHttpRequest<Object> request = HttpRequest.GET(
@@ -89,6 +95,6 @@ public class RedirectControllerTest {
         )
     );
 
-    assertEquals("Alias was not found!", notFoundException.getMessage());
+    assertEquals("Alias not found.", notFoundException.getMessage());
   }
 }
