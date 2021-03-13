@@ -2,8 +2,6 @@ package shortener.httphandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.gson.Gson;
-import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
@@ -37,9 +35,6 @@ import shortener.users.protection.HashFunction;
 @TestInstance(Lifecycle.PER_CLASS)
 public class UserControllerTest {
 
-  record UserData(String email, String password) {}
-
-  Gson gson = new Gson();
   @Inject
   EmbeddedServer embeddedServer;
   @Inject
@@ -78,7 +73,7 @@ public class UserControllerTest {
 
     var userData = new UserData("newuser@mail.com", "Passwd2021");
 
-    HttpRequest<String> request = HttpRequest.POST("/users/signup", gson.toJson(userData));
+    HttpRequest<UserData> request = HttpRequest.POST("/users/signup", userData);
     HttpResponse<String> response = client.toBlocking().exchange(request);
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
@@ -91,8 +86,8 @@ public class UserControllerTest {
 
     var emptyUser = new UserData("", "");
 
-    HttpRequest<String> emptyUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(emptyUser));
+    HttpRequest<UserData> emptyUserRequest = HttpRequest
+        .POST("/users/signup", emptyUser);
 
     // TODO: improve 4xx code response checking (e.g. status code check)
     Throwable emptyUserException = Assertions.assertThrows(
@@ -116,8 +111,8 @@ public class UserControllerTest {
   void signUpWithWrongEmail() {
     var wrongMailUser = new UserData("wrongmail", "Passwd2021");
 
-    HttpRequest<String> wrongMailUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(wrongMailUser));
+    HttpRequest<UserData> wrongMailUserRequest = HttpRequest
+        .POST("/users/signup", wrongMailUser);
 
     Throwable wrongMailUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -138,8 +133,8 @@ public class UserControllerTest {
 
     var existingUser = new UserData("test@mail.com", "Passwd123");
 
-    HttpRequest<String> emptyUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(existingUser));
+    HttpRequest<UserData> emptyUserRequest = HttpRequest
+        .POST("/users/signup", existingUser);
 
     // TODO: improve 4xx code response checking (e.g. status code check)
     Throwable emptyUserException = Assertions.assertThrows(
@@ -153,7 +148,7 @@ public class UserControllerTest {
 
     String jsonResponse = JsonResponse.createError(
         2,
-        String.format("User %s has already been registered.", existingUser.email)
+        String.format("User %s has already been registered.", existingUser.email())
     );
 
     Assertions.assertEquals(emptyUserException.getMessage(), jsonResponse);
@@ -163,8 +158,8 @@ public class UserControllerTest {
   void signUpWithWeakPassword() {
     var wrongPasswordUser = new UserData("user@mail.com", "pass");
 
-    HttpRequest<String> wrongPasswordUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(wrongPasswordUser));
+    HttpRequest<UserData> wrongPasswordUserRequest = HttpRequest
+        .POST("/users/signup", wrongPasswordUser);
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -187,8 +182,8 @@ public class UserControllerTest {
   void signInWithCorrectCredentials() {
     var user = new UserData("test@mail.com", "CoolPasswd123");
 
-    HttpRequest<String> request = HttpRequest
-        .POST("/users/signin", gson.toJson(user));
+    HttpRequest<UserData> request = HttpRequest
+        .POST("/users/signin", user);
 
     HttpResponse<String> response = client.toBlocking().exchange(
         request,
@@ -204,8 +199,8 @@ public class UserControllerTest {
   void signInWithWrongPassword() {
     var wrongPasswdUser = new UserData("test@mail.com", "WrongPasswd");
 
-    HttpRequest<String> request = HttpRequest
-        .POST("/users/signin", gson.toJson(wrongPasswdUser));
+    HttpRequest<UserData> request = HttpRequest
+        .POST("/users/signin", wrongPasswdUser);
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -222,8 +217,8 @@ public class UserControllerTest {
   void signOutWithAuthorization() {
     var validUser = new UserData("test@mail.com", "CoolPasswd123");
 
-    HttpRequest<String> signInRequest = HttpRequest
-        .POST("/users/signin", gson.toJson(validUser));
+    HttpRequest<UserData> signInRequest = HttpRequest
+        .POST("/users/signin", validUser);
 
     HttpResponse<BearerAccessRefreshToken> signInResponse = client.toBlocking().exchange(
         signInRequest,
@@ -242,7 +237,7 @@ public class UserControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("Successfully logged out");
+    assertThat(response.body()).contains("Successfully signed out");
   }
 
   @Test
@@ -252,8 +247,8 @@ public class UserControllerTest {
 
     var wrongPasswdUser = new UserData("nonexistent@mail.com", "Passwd123");
 
-    HttpRequest<String> request = HttpRequest
-        .POST("/users/signin", gson.toJson(wrongPasswdUser));
+    HttpRequest<UserData> request = HttpRequest
+        .POST("/users/signin", wrongPasswdUser);
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -315,11 +310,11 @@ public class UserControllerTest {
 
     var user = new UserData("anotheruser@mail.com", "CoolPasswd123");
 
-    HttpRequest<String> signUpRequest = HttpRequest.POST("/users/signup", gson.toJson(user));
+    HttpRequest<UserData> signUpRequest = HttpRequest.POST("/users/signup", user);
     HttpResponse<String> signUpResponse = client.toBlocking().exchange(signUpRequest);
 
-    HttpRequest<String> signInRequest = HttpRequest
-        .POST("/users/signin", gson.toJson(user));
+    HttpRequest<UserData> signInRequest = HttpRequest
+        .POST("/users/signin", user);
 
     HttpResponse<String> signInResponse = client.toBlocking().exchange(
         signInRequest,
