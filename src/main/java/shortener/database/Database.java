@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import javax.inject.Singleton;
 import shortener.database.tables.AliasTable;
 import shortener.database.tables.DatabaseTable;
-import shortener.database.tables.UserAliasTable;
 import shortener.database.tables.UserSessionTable;
 import shortener.database.tables.UserTable;
 import shortener.exceptions.database.NotFound;
@@ -27,7 +26,6 @@ public class Database {
 
   public UserTable userTable;
   public AliasTable aliasTable;
-  public UserAliasTable userAliasTable;
   public UserSessionTable userSessionTable;
 
 
@@ -48,7 +46,6 @@ public class Database {
 
     userTable = new UserTable(rootPath);
     aliasTable = new AliasTable(rootPath);
-    userAliasTable = new UserAliasTable(rootPath);
     userSessionTable = new UserSessionTable(rootPath);
   }
 
@@ -83,7 +80,6 @@ public class Database {
     // Init tables
     UserTable.init(rootPath);
     AliasTable.init(rootPath);
-    UserAliasTable.init(rootPath);
     UserSessionTable.init(rootPath);
   }
 
