@@ -8,6 +8,7 @@ import io.micronaut.http.annotation.Delete;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import java.net.MalformedURLException;
@@ -29,6 +30,12 @@ import shortener.users.UserRepository;
 @Controller("/urls")
 public class UrlController {
 
+  protected final String host;
+
+  public UrlController(EmbeddedServer embeddedServer) {
+    host = embeddedServer.getHost();
+  }
+
   @Inject
   UrlRepository urlRepository;
 
@@ -49,22 +56,28 @@ public class UrlController {
 
     // JSON content validation
     if (url == null || url.isBlank()) {
-      return HttpResponse.badRequest("Invalid data: url parameter should not be empty");
+      return HttpResponse.badRequest("Invalid data: \"url\" parameter should not be empty");
     }
 
-    // URL validation
+    // URL Validation - general
     try {
       new URL(url);
-    } catch (MalformedURLException e) {
-      return HttpResponse.badRequest("Invalid url: " + url);
+    } catch (MalformedURLException exc) {
+      return HttpResponse.badRequest("Invalid URL: " + url);
+    }
+
+    // URL Validation - local URLs are not allowed
+    if (url.startsWith(host) || url.startsWith("http://" + host) || url.startsWith("https://" + host)) {
+      return HttpResponse.badRequest("Invalid data: Local URLs are not allowed");
     }
 
     // User existing check
     Long userId;
     try {
       userId = userRepository.getByEmail(userEmail).id();
-    } catch (NotFound e) {
-      return HttpResponse.unauthorized().body(String.format("User %s not registered", userEmail));
+    } catch (NotFound exc) {
+      return HttpResponse.unauthorized()
+          .body(String.format("User %s is not registered", userEmail));
     }
 
     // Create alias records and check for its uniqueness
@@ -73,12 +86,12 @@ public class UrlController {
     } else {
       try {
         urlRepository.create(new Alias(alias, url, userId));
-      } catch (UniqueViolation e) {
+      } catch (UniqueViolation exc) {
         return HttpResponse.badRequest("Specified alias is taken");
       }
     }
 
-    return HttpResponse.created("Url successfully shortened");
+    return HttpResponse.created("URL successfully shortened");
   }
 
   /**
