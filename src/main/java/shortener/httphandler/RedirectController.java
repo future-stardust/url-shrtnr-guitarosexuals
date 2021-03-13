@@ -37,7 +37,7 @@ public class RedirectController {
 
       return HttpResponse.redirect(new URI(aliasRecord.url()));
     } catch (NotFound exc) {
-      return HttpResponse.notFound("Alias not found.");
+      return HttpResponse.notFound("Alias was not found!");
     } catch (IOException exc) {
       return HttpResponse.serverError();
     }
