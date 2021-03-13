@@ -36,4 +36,18 @@ public class JsonResponse {
 
     return jsonResponse.toJSONString();
   }
+
+  /**
+   * Method to generate JSON string with shortened url.
+   *
+   * @param shortenedUrl url to be placed in json
+   * @return json with shortened url
+   */
+  public static String getShortenSuccessMessage(String shortenedUrl) {
+    final JSONObject jsonResponse = new JSONObject();
+
+    jsonResponse.put("shortened_url", shortenedUrl);
+
+    return jsonResponse.toJSONString();
+  }
 }

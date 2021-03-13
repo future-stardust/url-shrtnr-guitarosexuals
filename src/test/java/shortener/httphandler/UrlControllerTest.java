@@ -26,6 +26,7 @@ import shortener.database.entities.Alias;
 import shortener.database.entities.User;
 import shortener.database.entities.UserSession;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.JsonResponse;
 import shortener.httphandler.utils.ShortenData;
 import shortener.urls.UrlRepository;
 import shortener.users.UserRepository;
@@ -113,7 +114,7 @@ public class UrlControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("URL successfully shortened");
+    assertThat(response.body()).contains("shortened_url");
   }
 
   @Test
@@ -135,7 +136,7 @@ public class UrlControllerTest {
     );
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.body()).contains("URL successfully shortened");
+    assertThat(response.body()).contains("shortened_url");
   }
 
   @Test
@@ -160,8 +161,12 @@ public class UrlControllerTest {
         )
     );
 
-    // check prefix
-    assertThat(emptyDataException.getMessage()).startsWith("Invalid data:");
+    String jsonResponse = JsonResponse.getErrorMessage(
+        0,
+        "Invalid data: \"url\" parameter should not be empty"
+    );
+
+    assertThat(emptyDataException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -177,7 +182,7 @@ public class UrlControllerTest {
 
     HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
 
-    Throwable emptyDataException = Assertions.assertThrows(
+    Throwable wrongUrlException = Assertions.assertThrows(
         HttpClientResponseException.class,
         () -> client.toBlocking().exchange(
             requestWithAuth,
@@ -186,7 +191,12 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).startsWith("Invalid URL: ");
+    String jsonResponse = JsonResponse.getErrorMessage(
+        1,
+        "Invalid data: url should be http/https valid"
+    );
+
+    assertThat(wrongUrlException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -202,7 +212,7 @@ public class UrlControllerTest {
 
     HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
 
-    Throwable emptyDataException = Assertions.assertThrows(
+    Throwable wrongUrlException = Assertions.assertThrows(
         HttpClientResponseException.class,
         () -> client.toBlocking().exchange(
             requestWithAuth,
@@ -211,7 +221,12 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).startsWith("Invalid URL: ");
+    String jsonResponse = JsonResponse.getErrorMessage(
+        1,
+        "Invalid data: url should be http/https valid"
+    );
+
+    assertThat(wrongUrlException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -231,7 +246,7 @@ public class UrlControllerTest {
 
     HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
 
-    Throwable emptyDataException = Assertions.assertThrows(
+    Throwable localUrlException = Assertions.assertThrows(
         HttpClientResponseException.class,
         () -> client.toBlocking().exchange(
             requestWithAuth,
@@ -240,9 +255,12 @@ public class UrlControllerTest {
         )
     );
 
-    Assertions.assertEquals(
-        "Invalid data: Local URLs are not allowed", emptyDataException.getMessage()
+    String jsonResponse = JsonResponse.getErrorMessage(
+        1,
+        "Invalid data: Local URLs are not allowed"
     );
+
+    assertThat(localUrlException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -268,7 +286,13 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).contains("Specified alias is taken");
+
+    String jsonResponse = JsonResponse.getErrorMessage(
+        2,
+        "Specified alias is already taken"
+    );
+
+    assertThat(emptyDataException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -307,12 +331,10 @@ public class UrlControllerTest {
 
     MutableHttpRequest<Object> requestWithAuth = HttpRequest.DELETE(uri).bearerAuth(token);
 
-    String response = client.toBlocking()
-        .retrieve(requestWithAuth);
+    HttpResponse<String> response = client.toBlocking().exchange(requestWithAuth);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    Assertions.assertEquals(response, objectMapper.writeValueAsString(aliasToDelete));
+    assertThat(response.body()).isNull();
+    assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.NO_CONTENT);
   }
 
 

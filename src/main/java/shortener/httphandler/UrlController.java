@@ -20,6 +20,7 @@ import shortener.database.entities.Alias;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.JsonResponse;
 import shortener.httphandler.utils.ShortenData;
 import shortener.urls.UrlRepository;
 import shortener.users.UserRepository;
@@ -32,9 +33,18 @@ import shortener.users.UserRepository;
 public class UrlController {
 
   protected final String host;
+  protected final String scheme;
+  protected final Integer port;
 
+  /**
+   * Controller constructor with embedded server.
+   *
+   * @param embeddedServer server
+   */
   public UrlController(EmbeddedServer embeddedServer) {
     host = embeddedServer.getHost();
+    scheme = embeddedServer.getScheme();
+    port = embeddedServer.getPort();
   }
 
   @Inject
@@ -47,7 +57,9 @@ public class UrlController {
    * Entrypoint for shortening urls.
    *
    * @param shortenData json (url, alias: optional)
-   * @return OK/error
+   * @return  201 Created - returns shortened_url
+   *          400 Bad Request - if shorten data is wrong
+   *          401 Unauthorized - if user is not authorized
    */
   @Post(value = "/shorten", consumes = MediaType.APPLICATION_JSON)
   public HttpResponse<Object> shortenUrl(@Body ShortenData shortenData, Principal principal) {
@@ -57,42 +69,56 @@ public class UrlController {
 
     // JSON content validation
     if (url == null || url.isBlank()) {
-      return HttpResponse.badRequest("Invalid data: \"url\" parameter should not be empty");
+      String jsonMessage = JsonResponse.getErrorMessage(
+          0,
+          "Invalid data: \"url\" parameter should not be empty"
+      );
+      return HttpResponse.badRequest(jsonMessage);
     }
 
     // URL Validation - general
     try {
       new URL(url);
     } catch (MalformedURLException exc) {
-      return HttpResponse.badRequest("Invalid URL: " + url);
+      String jsonMessage = JsonResponse.getErrorMessage(
+          1,
+          "Invalid data: url should be http/https valid"
+      );
+      return HttpResponse.badRequest(jsonMessage);
     }
 
     // URL Validation - local URLs are not allowed
     if (url.startsWith(host) || url.startsWith("http://" + host) || url.startsWith("https://" + host)) {
-      return HttpResponse.badRequest("Invalid data: Local URLs are not allowed");
+      String jsonMessage = JsonResponse.getErrorMessage(
+          1,
+          "Invalid data: Local URLs are not allowed"
+      );
+      return HttpResponse.badRequest(jsonMessage);
     }
 
     // User existing check
-    Long userId;
-    try {
-      userId = userRepository.getByEmail(userEmail).id();
-    } catch (NotFound exc) {
-      return HttpResponse.unauthorized()
-          .body(String.format("User %s is not registered", userEmail));
-    }
+    Long userId = userRepository.getByEmail(userEmail).id();
 
     // Create alias records and check for its uniqueness
+    Alias createdAlias;
     if (alias == null || alias.isBlank()) {
-      urlRepository.createRandomAlias(url, userId);
+      createdAlias = urlRepository.createRandomAlias(url, userId);
     } else {
       try {
-        urlRepository.create(new Alias(alias, url, userId));
+        createdAlias = urlRepository.create(new Alias(alias, url, userId));
       } catch (UniqueViolation exc) {
-        return HttpResponse.badRequest("Specified alias is taken");
+        String jsonMessage = JsonResponse.getErrorMessage(
+            2,
+            "Specified alias is already taken"
+        );
+        return HttpResponse.badRequest(jsonMessage);
       }
     }
 
-    return HttpResponse.created("URL successfully shortened");
+    String jsonMessage = JsonResponse.getShortenSuccessMessage(
+        String.format("%s://%s:%d/r/%s", scheme, host, port, createdAlias.alias())
+    );
+    return HttpResponse.created(jsonMessage);
   }
 
   /**
@@ -121,18 +147,15 @@ public class UrlController {
    * Entrypoint for deleting shortened links.
    *
    * @param alias alias of shortened link should be removed
-   * @return OK/error
+   * @return  204 No Content - deletes specified url<br>
+   *          401 Unauthorized - if user is not authorized<br>
+   *          404 Not Found - if alias was not found
    */
   @Delete(value = "/{alias}")
   public HttpResponse<Object> deleteUrl(@QueryValue String alias, Principal principal) {
     String userEmail = principal.getName();
 
-    User user;
-    try {
-      user = userRepository.getByEmail(userEmail);
-    } catch (NotFound exc) {
-      return HttpResponse.unauthorized();
-    }
+    User user = userRepository.getByEmail(userEmail);
 
     try {
       Alias aliasToDelete = urlRepository.get(alias);
@@ -141,9 +164,9 @@ public class UrlController {
         throw new NotFound("aliases", alias);
       }
 
-      return HttpResponse.ok(urlRepository.delete(alias));
+      return HttpResponse.noContent();
     } catch (NotFound exc) {
-      return HttpResponse.notFound();
+      return HttpResponse.notFound("User ");
     }
   }
 }
