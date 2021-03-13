@@ -41,10 +41,6 @@ public class UserController {
   @Client("/")
   RxHttpClient client;
 
-  private static final Integer SIGNUP_ERROR_CODE = 0;
-  private static final Integer SIGN_IN_ERROR_CODE = 1;
-  private static final Integer SIGN_OUT_ERROR_CODE = 2;
-
   /**
    * Proxy method for login endpoint.
    *
@@ -91,7 +87,7 @@ public class UserController {
     if (userData.email() == null || userData.email().isBlank()
         || userData.password() == null || userData.password().isBlank()) {
       String jsonResponse = JsonResponse.createError(
-          SIGNUP_ERROR_CODE,
+          0,
           "Credentials should not be empty."
       );
 
@@ -106,7 +102,7 @@ public class UserController {
       UserDataValidator.validatePassword(userPassword);
     } catch (InvalidCredentials e) {
       String jsonResponse = JsonResponse.createError(
-          SIGNUP_ERROR_CODE,
+          0,
           e.getMessage()
       );
 
@@ -117,7 +113,7 @@ public class UserController {
       userRepository.create(userEmail, userPassword);
     } catch (UniqueViolation exc) {
       String jsonResponse = JsonResponse.createError(
-          SIGNUP_ERROR_CODE,
+          2,
           String.format("User %s has already been registered.", userEmail)
       );
 
@@ -145,9 +141,14 @@ public class UserController {
           ""
       );
       userSessionRepository.delete(accessToken);
-      return HttpResponse.ok("Successfully logged out");
+      return HttpResponse.ok("Successfully signed out.");
     }
 
-    return HttpResponse.serverError("An error occurred while trying to sign out.");
+    String jsonResponse = JsonResponse.createError(
+        0,
+        "An error occurred while trying to sign out."
+    );
+
+    return HttpResponse.serverError(jsonResponse);
   }
 }

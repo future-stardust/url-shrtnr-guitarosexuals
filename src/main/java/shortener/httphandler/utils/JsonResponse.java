@@ -3,7 +3,7 @@ package shortener.httphandler.utils;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
 /**
- * Helper class, providing methods for creating JSON-based response for HTTP requests.
+ * Helper class that provides methods for creating HTTP request JSON-based response.
  */
 public class JsonResponse {
 
@@ -12,6 +12,8 @@ public class JsonResponse {
    *
    * @param reasonCode Error reason code
    * @param reasonText Error reason text message
+   *
+   * @return stringified JSON-based response
    */
   public static String createError(Integer reasonCode, String reasonText) {
     final JSONObject jsonResponse = new JSONObject();

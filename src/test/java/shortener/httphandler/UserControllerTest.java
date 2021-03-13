@@ -43,10 +43,6 @@ public class UserControllerTest {
   @Inject
   UserRepository userRepository;
 
-  private static final Integer SIGNUP_ERROR_CODE = 0;
-  private static final Integer SIGN_IN_ERROR_CODE = 1;
-  private static final Integer SIGN_OUT_ERROR_CODE = 2;
-
   @BeforeAll
   void setup() {
     userRepository.create("test@mail.com", "CoolPasswd123");
@@ -80,7 +76,7 @@ public class UserControllerTest {
     );
 
     String jsonResponse = JsonResponse.createError(
-        SIGNUP_ERROR_CODE,
+        0,
         "Credentials should not be empty."
     );
 
@@ -105,7 +101,7 @@ public class UserControllerTest {
     );
 
     String jsonResponse = JsonResponse.createError(
-        SIGNUP_ERROR_CODE,
+        2,
         String.format("User %s has already been registered.", existingUser.email)
     );
 
@@ -148,7 +144,7 @@ public class UserControllerTest {
     );
 
     String jsonResponse = JsonResponse.createError(
-        SIGNUP_ERROR_CODE,
+        0,
         "Password must be at least 8 characters long."
     );
 
@@ -232,7 +228,7 @@ public class UserControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("Successfully logged out");
+    assertThat(response.body()).contains("Successfully signed out.");
   }
 
   @Test
