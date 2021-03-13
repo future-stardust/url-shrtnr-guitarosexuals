@@ -57,7 +57,7 @@ public class AccessTokenHandler extends AccessRefreshTokenLoginHandler {
         .generate(userDetails);
 
     if (accessRefreshTokenOptional.isPresent()) {
-      User servicedUser = userRepository.get(userDetails.getUsername());
+      User servicedUser = userRepository.getByEmail(userDetails.getUsername());
       String accessToken = accessRefreshTokenOptional.get().getAccessToken();
 
       // Delete existing sessions

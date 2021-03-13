@@ -1,117 +1,125 @@
 package shortener.users;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
+import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Arrays;
+import java.util.Collections;
+import javax.inject.Inject;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import shortener.database.Database;
 import shortener.database.entities.User;
+import shortener.database.tables.UserTable;
 import shortener.exceptions.database.NotFound;
 import shortener.exceptions.database.UniqueViolation;
-
-import javax.inject.Inject;
-import shortener.users.protection.HashFunction;
 
 @MicronautTest
 public class UserRepositoryTest {
 
   @Inject
-  UserRepository userRepository;
+  UserRepository testable;
 
-  @BeforeEach
-  void testDataSetup() {
-    userRepository = new UserRepository(new User[]{
-        new User(
-            1L,
-            "test1@ex.com",
-            HashFunction.hashOut("password1", "test1@ex.com")
-        ),
-        new User(
-            2L,
-            "test2@mail.com",
-            HashFunction.hashOut("password2", "test2@mail.com")
-        ),
-        new User(
-            3L,
-            "test3@em.ua",
-            HashFunction.hashOut("password3", "test3@em.ua")
-        )
-    });
+  @Inject
+  Database db;
+
+  @MockBean(Database.class)
+  public Database mockDb() {
+    return Mockito.mock(Database.class);
+  }
+
+
+  @Test
+  void searchSuccessfullyReturnsRecords() {
+
+    var records =
+        Arrays.asList(new User(1L, "test@email.com", "pa$$word"),
+            new User(2L, "test2@email.com", "pa$$word"));
+
+    Mockito.when(db.search(Mockito.any(UserTable.class)))
+        .thenReturn(records);
+
+    Assertions.assertThat(testable.search()).isEqualTo(records);
   }
 
   @Test
-  void searchTest() {
-    assertThat(userRepository.search()).isNotNull();
-    assertThat(userRepository.search()).hasSize(3);
+  void getSuccessfullyReturnsRecordIfFound() {
+    var record = new User(1L, "test@email.com", "pa$$word");
+
+    Mockito.when(db.get(Mockito.any(UserTable.class), Mockito.eq(1L)))
+        .thenReturn(record);
+
+    Assertions.assertThat(testable.get(1L)).isEqualTo(record);
   }
 
   @Test
-  void getExistingUserTest() {
-    assertThat(userRepository.get(1L)).isNotNull();
-    assertThat(userRepository.get("test1@ex.com")).isNotNull();
+  void getThrowsIfRecordNotFound() {
+    Mockito.when(db.get(Mockito.any(UserTable.class), Mockito.any()))
+        .thenThrow(new NotFound("users", 1L));
+
+    Assertions.assertThatThrownBy(() -> testable.get(1L)).isInstanceOf(NotFound.class);
   }
 
   @Test
-  void getNonExistingUserTest() {
-    assertThatThrownBy(() -> userRepository.get(10L),
-        String.valueOf(NotFound.class)
-    );
-    assertThatThrownBy(() -> userRepository.get("notuser@mail.ru"),
-        String.valueOf(NotFound.class)
-    );
+  void getByEmailSuccessfullyReturnsRecordIfFound() {
+    var testUser = new User(1L, "test@email.com", "pa$$word");
+
+    var records =
+        Arrays.asList(testUser,
+            new User(2L, "test2@email.com", "pa$$word"));
+
+    Mockito.when(db.search(Mockito.any(UserTable.class), Mockito.any(), Mockito.anyLong()))
+        .thenReturn(records);
+
+    Assertions.assertThat(testable.getByEmail("test@email.com")).isEqualTo(testUser);
   }
 
   @Test
-  void createNonExistingUserTest() {
-    User userRecord = new User(4L, "newuser@mail.com", "coolpassword");
-    User createdUser = userRepository.create(userRecord);
+  void getByEmailThrowsIfRecordNotFound() {
+    Mockito.when(db.search(Mockito.any(UserTable.class), Mockito.any(), Mockito.anyLong()))
+        .thenReturn(Collections.emptyList());
 
-    assertThat(createdUser).isNotNull();
-    assertThat(createdUser).isEqualTo(userRecord);
+    Assertions.assertThatThrownBy(() -> testable.getByEmail("test@email.com"))
+        .isInstanceOf(NotFound.class);
   }
 
   @Test
-  void createAlreadyExistingUserTest() {
-    User busyMailUser = new User(4L, "test1@ex.com", "coolpassword");
-    User busyIdUser = new User(3L, "newuser@mail.com", "coolpassword");
+  void createSuccessfullyCreatesRecord() {
+    var record = new User(1L, "test@email.com", "pa$$word");
 
-    assertThatThrownBy(() -> userRepository.create(busyMailUser),
-        String.valueOf(UniqueViolation.class)
-    );
-    assertThatThrownBy(() -> userRepository.create(busyIdUser),
-        String.valueOf(UniqueViolation.class)
-    );
+    Mockito.when(db.create(Mockito.any(UserTable.class), Mockito.any()))
+        .thenReturn(record);
+
+    Assertions.assertThat(testable.create(record)).isEqualTo(record);
   }
 
   @Test
-  void deleteExistingUserTest() {
-    assertThat(userRepository.delete(1L)).isNotNull();
-    assertThat(userRepository.delete("test2@mail.com")).isNotNull();
-    assertThat(userRepository.search()).hasSize(1);
+  void createThrowsIfSuchRecordExists() {
+    var record = new User(1L, "test@email.com", "pa$$word");
+
+    Mockito.when(db.create(Mockito.any(UserTable.class), Mockito.any()))
+        .thenThrow(new UniqueViolation("users"));
+
+    Assertions.assertThatThrownBy(() -> testable.create(record))
+        .isInstanceOf(UniqueViolation.class);
   }
 
   @Test
-  void deleteNonExistingUserTest() {
-    assertThatThrownBy(() -> userRepository.delete(10L),
-        String.valueOf(NotFound.class)
-    );
+  void deleteSuccessfullyRemovesRecord() {
+    var record = new User(1L, "test@email.com", "pa$$word");
 
-    assertThatThrownBy(() -> userRepository.delete("notuser@mail.ru"),
-        String.valueOf(NotFound.class)
-    );
+    Mockito.when(db.delete(Mockito.any(UserTable.class), Mockito.any()))
+        .thenReturn(record);
 
-    assertThat(userRepository.search()).hasSize(3);
+    Assertions.assertThat(testable.delete(1L)).isEqualTo(record);
   }
 
   @Test
-  void getUserPasswordTest() {
-    assertThat(userRepository.getUserPassword("test1@ex.com"))
-        .isEqualTo("da0eb01bba47fe9fffd1ce6d539a2b4dcf49cbc99f4fa3a18de63e1715262e99");
-    assertThat(userRepository.getUserPassword("test2@mail.com"))
-        .isEqualTo("2cace643e8431817df9a5a809ac121d13bcbaa3e49d628abe8de445a65142963");
-    assertThat(userRepository.getUserPassword("test3@em.ua"))
-        .isEqualTo("491e68e41368e324801c11ddcae3ec38376ac6251b5bb768344346fab3f673b5");
+  void deleteThrowsIfRecordNotFound() {
+    Mockito.when(db.delete(Mockito.any(UserTable.class), Mockito.any()))
+        .thenThrow(new NotFound("users", 1L));
+
+    Assertions.assertThatThrownBy(() -> testable.delete(1L)).isInstanceOf(NotFound.class);
   }
 }

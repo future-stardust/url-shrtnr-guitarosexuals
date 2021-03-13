@@ -1,9 +1,9 @@
 package shortener.users;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import javax.inject.Inject;
 import javax.inject.Singleton;
+import shortener.database.Database;
 import shortener.database.Repository;
 import shortener.database.entities.User;
 import shortener.exceptions.database.NotFound;
@@ -12,100 +12,31 @@ import shortener.users.protection.HashFunction;
 
 /**
  * A database repository for Users module.
- *
- * <p>TODO: Replace mocked data with actual db interaction.
  */
 @Singleton
 public class UserRepository implements Repository<User, Long> {
-  // TODO: solve the issue with hashmaps
-  private final HashMap<Long, User> idUserHashMap;
-  private final HashMap<String, User> emailUserHashMap;
-  private long nextId;
 
-  /**
-   * UserRepository constructor.
-   */
-  public UserRepository() {
-    idUserHashMap = new HashMap<>();
-    emailUserHashMap = new HashMap<>();
-    nextId = 3; // TODO: nextId init
-
-    User testUser1 = new User(
-        1L,
-        "drew@ex.com",
-        HashFunction.hashOut("Password1", "drew@ex.com"));
-
-    User testUser2 = new User(
-        2L,
-        "max@mail.ru",
-        HashFunction.hashOut("Password2", "max@mail.ru")
-    );
-
-    idUserHashMap.put(testUser1.id(), testUser1);
-    idUserHashMap.put(testUser2.id(), testUser2);
-    emailUserHashMap.put(testUser1.email(), testUser1);
-    emailUserHashMap.put(testUser2.email(), testUser2);
-  }
-
-  /**
-   * Constructor provided for testing purposes. TODO: remove it in the future
-   *
-   * @param initialUserList user data
-   */
-  public UserRepository(User[] initialUserList) {
-    idUserHashMap = new HashMap<>();
-    emailUserHashMap = new HashMap<>();
-
-    for (User user : initialUserList) {
-      idUserHashMap.put(user.id(), user);
-      emailUserHashMap.put(user.email(), user);
-    }
-  }
+  @Inject
+  Database db;
 
   @Override
   public List<User> search() {
-    return new ArrayList<>(idUserHashMap.values());
+    return db.search(db.userTable);
   }
 
   @Override
   public User get(Long pk) throws NotFound {
-    User user = idUserHashMap.get(pk);
-
-    if (user != null) {
-      return user;
-    }
-
-    // TODO: tablename from database class
-    throw new NotFound("users", pk);
+    return db.get(db.userTable, pk);
   }
 
-  /**
-   * Method for getting User record by email field.
-   *
-   * @param email email string
-   * @return User object with specified email
-   * @throws NotFound if such user not found
-   */
-  public User get(String email) throws NotFound {
-    User user = emailUserHashMap.get(email);
-    if (user == null) {
-      // TODO: tablename from database class
-      throw new NotFound("users", email);
-    }
-
-    return user;
+  public User getByEmail(String email) throws NotFound {
+    return db.search(db.userTable, u -> u.email().equals(email), 1).stream().findFirst()
+        .orElseThrow(() -> new NotFound(db.userTable.getTableName(), email));
   }
 
   @Override
   public User create(User record) throws UniqueViolation {
-    if (idUserHashMap.containsKey(record.id()) || emailUserHashMap.containsKey(record.email())) {
-      // TODO: tablename from database's class
-      throw new UniqueViolation("users");
-    }
-    idUserHashMap.put(record.id(), record);
-    emailUserHashMap.put(record.email(), record);
-
-    return record;
+    return db.create(db.userTable, record);
   }
 
   /**
@@ -116,48 +47,14 @@ public class UserRepository implements Repository<User, Long> {
    * @param password raw password of new user
    * @return created user record
    */
-  public User create(String email, String password) {
-    if (emailUserHashMap.containsKey(email)) {
-      // TODO: tablename from database's class
-      throw new UniqueViolation("users");
-    }
-    User newUser = new User(nextId++, email, HashFunction.hashOut(password, email));
+  public User create(String email, String password) throws UniqueViolation {
+    User newUser = new User(null, email, HashFunction.hashOut(password, email));
 
-    idUserHashMap.put(newUser.id(), newUser);
-    emailUserHashMap.put(newUser.email(), newUser);
-
-    return newUser;
+    return db.create(db.userTable, newUser);
   }
 
   @Override
   public User delete(Long pk) throws NotFound {
-    User userToDelete = idUserHashMap.remove(pk);
-    if (userToDelete == null) {
-      // TODO: tablename from database class
-      throw new NotFound("users", pk);
-    }
-
-    return emailUserHashMap.remove(userToDelete.email());
-  }
-
-  /**
-   * Method for deleting user record by email field.
-   *
-   * @param email email of user to be deleted
-   * @return deleted user record
-   * @throws NotFound if such user not found
-   */
-  public User delete(String email) throws NotFound {
-    User userToDelete = emailUserHashMap.remove(email);
-    if (userToDelete == null) {
-      // TODO: tablename from database class
-      throw new NotFound("users", email);
-    }
-
-    return idUserHashMap.remove(userToDelete.id());
-  }
-
-  public String getUserPassword(String email) {
-    return get(email).password();
+    return db.delete(db.userTable, pk);
   }
 }

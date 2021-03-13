@@ -62,7 +62,7 @@ public class UrlController {
     // User existing check
     Long userId;
     try {
-      userId = userRepository.get(userEmail).id();
+      userId = userRepository.getByEmail(userEmail).id();
     } catch (NotFound e) {
       return HttpResponse.unauthorized().body(String.format("User %s not registered", userEmail));
     }
@@ -92,7 +92,7 @@ public class UrlController {
 
     User user;
     try {
-      user = userRepository.get(userEmail);
+      user = userRepository.getByEmail(userEmail);
     } catch (NotFound exc) {
       return HttpResponse.unauthorized();
     }
@@ -112,7 +112,7 @@ public class UrlController {
 
     User user;
     try {
-      user = userRepository.get(userEmail);
+      user = userRepository.getByEmail(userEmail);
     } catch (NotFound exc) {
       return HttpResponse.unauthorized();
     }
