@@ -14,7 +14,6 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.io.IOException;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ public class RedirectControllerTest {
   }
 
   @Test
-  void redirectPositive() throws IOException {
+  void redirectPositive() {
     Mockito.when(db.get(Mockito.any(), Mockito.any()))
         .thenReturn(new Alias("alias1", "http://example1.org", 1L, 0));
 
@@ -56,7 +55,7 @@ public class RedirectControllerTest {
   }
 
   @Test
-  void redirectNegative() throws IOException {
+  void redirectNegative() {
     Mockito.when(db.get(Mockito.any(), Mockito.any()))
         .thenThrow(new NotFound("aliases", "NotFound"));
 

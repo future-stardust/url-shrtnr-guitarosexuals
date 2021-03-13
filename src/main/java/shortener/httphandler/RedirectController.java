@@ -6,7 +6,6 @@ import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.QueryValue;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.inject.Inject;
@@ -38,8 +37,6 @@ public class RedirectController {
       return HttpResponse.redirect(new URI(aliasRecord.url()));
     } catch (NotFound exc) {
       return HttpResponse.notFound("Alias not found.");
-    } catch (IOException exc) {
-      return HttpResponse.serverError();
     }
   }
 }
