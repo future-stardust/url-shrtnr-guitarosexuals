@@ -1,4 +1,4 @@
-# GuitaroSexuals - URL shortener 
+# GuitaroSexuals🎸🕺️ - URL shortener 
 
 ## Students group
 
@@ -27,7 +27,7 @@ There are four modules:
 ## Requirements
 
 ### Host Server
-Operation System: UNIX-like
+Operating System: UNIX-like
 
 ### Java
 This is a Java project, so you will need an environment with installed [JDK] 15. For installation, 
@@ -41,7 +41,7 @@ We use [checkstyle] to ensure coding standards. We use Google rules (local copy 
 ## How to start development
 
 1. Clone this repo
-2. Open the project direcotry in your editor/IDE
+2. Open the project directory in your editor/IDE
 3. Configure code style settings
   
 [JDK]: https://en.wikipedia.org/wiki/Java_Development_Kit
@@ -49,3 +49,7 @@ We use [checkstyle] to ensure coding standards. We use Google rules (local copy 
 [AdoptOpenJDK]: https://adoptopenjdk.net/
 [7 rules of good commit messages]: https://chris.beams.io/posts/git-commit/#seven-rules
 [checkstyle]: https://checkstyle.org/
+
+
+## Handbook📚
+Follow the guidance provided in this [link](/HANDBOOK.md).
