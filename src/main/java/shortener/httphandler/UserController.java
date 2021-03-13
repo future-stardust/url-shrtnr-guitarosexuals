@@ -1,5 +1,6 @@
 package shortener.httphandler;
 
+import com.google.gson.JsonParser;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -65,11 +66,15 @@ public class UserController {
 
     HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/login", credentials);
 
+    String body;
     try {
-      return client.exchange(request, String.class).blockingFirst();
+      body = client.retrieve(request, String.class).blockingFirst();
     } catch (HttpClientResponseException e) {
       return HttpResponse.unauthorized().body(e.getMessage());
     }
+    String token = JsonParser.parseString(body).getAsJsonObject().get("access_token").getAsString();
+
+    return HttpResponse.ok(JsonResponse.getTokenMessage(token));
   }
 
   /**
@@ -85,7 +90,7 @@ public class UserController {
   public HttpResponse<String> signUp(@Body UserData userData) {
     if (userData.email() == null || userData.email().isBlank()
         || userData.password() == null || userData.password().isBlank()) {
-      String jsonResponse = JsonResponse.createError(
+      String jsonResponse = JsonResponse.getErrorMessage(
           0,
           "Credentials should not be empty."
       );
@@ -100,7 +105,7 @@ public class UserController {
       UserDataValidator.validateEmail(userEmail);
       UserDataValidator.validatePassword(userPassword);
     } catch (InvalidCredentials e) {
-      String jsonResponse = JsonResponse.createError(
+      String jsonResponse = JsonResponse.getErrorMessage(
           0,
           e.getMessage()
       );
@@ -111,7 +116,7 @@ public class UserController {
     try {
       userRepository.create(userEmail, userPassword);
     } catch (UniqueViolation exc) {
-      String jsonResponse = JsonResponse.createError(
+      String jsonResponse = JsonResponse.getErrorMessage(
           2,
           String.format("User %s has already been registered.", userEmail)
       );
@@ -143,7 +148,7 @@ public class UserController {
       return HttpResponse.ok("Successfully signed out.");
     }
 
-    String jsonResponse = JsonResponse.createError(
+    String jsonResponse = JsonResponse.getErrorMessage(
         0,
         "An error occurred while trying to sign out."
     );

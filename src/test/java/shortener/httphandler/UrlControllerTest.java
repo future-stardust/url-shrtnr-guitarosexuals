@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonParser;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -13,7 +14,6 @@ import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
-import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.util.Collections;
@@ -88,12 +88,9 @@ public class UrlControllerTest {
     );
 
     HttpRequest<UserData> request = HttpRequest.POST("/users/signin", userData);
-    HttpResponse<BearerAccessRefreshToken> response = client.toBlocking()
-        .exchange(request, BearerAccessRefreshToken.class);
+    String responseBody = client.toBlocking().retrieve(request);
 
-    BearerAccessRefreshToken bearerAccessRefreshToken = response.body();
-    assert bearerAccessRefreshToken != null;
-    token = bearerAccessRefreshToken.getAccessToken();
+    token = JsonParser.parseString(responseBody).getAsJsonObject().get("token").getAsString();
   }
 
   @Test

@@ -2,6 +2,7 @@ package shortener.httphandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.gson.JsonParser;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
@@ -11,10 +12,8 @@ import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
-import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.util.Objects;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,7 +98,7 @@ public class UserControllerTest {
         )
     );
 
-    String jsonResponse = JsonResponse.createError(
+    String jsonResponse = JsonResponse.getErrorMessage(
         0,
         "Credentials should not be empty."
     );
@@ -146,7 +145,7 @@ public class UserControllerTest {
         )
     );
 
-    String jsonResponse = JsonResponse.createError(
+    String jsonResponse = JsonResponse.getErrorMessage(
         2,
         String.format("User %s has already been registered.", existingUser.email())
     );
@@ -170,7 +169,7 @@ public class UserControllerTest {
         )
     );
 
-    String jsonResponse = JsonResponse.createError(
+    String jsonResponse = JsonResponse.getErrorMessage(
         0,
         "Password must be at least 8 characters long."
     );
@@ -192,7 +191,7 @@ public class UserControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("access_token");
+    assertThat(response.body()).contains("token");
   }
 
   @Test
@@ -217,15 +216,11 @@ public class UserControllerTest {
   void signOutWithAuthorization() {
     var validUser = new UserData("test@mail.com", "CoolPasswd123");
 
-    HttpRequest<UserData> signInRequest = HttpRequest
-        .POST("/users/signin", validUser);
+    HttpRequest<UserData> signInRequest = HttpRequest.POST("/users/signin", validUser);
+    String signInResponseBody = client.toBlocking().retrieve(signInRequest);
 
-    HttpResponse<BearerAccessRefreshToken> signInResponse = client.toBlocking().exchange(
-        signInRequest,
-        BearerAccessRefreshToken.class
-    );
-
-    final String accessToken = Objects.requireNonNull(signInResponse.body()).getAccessToken();
+    final String accessToken = JsonParser.parseString(signInResponseBody)
+        .getAsJsonObject().get("token").getAsString();
 
     HttpRequest<Object> signOutRequest = HttpRequest.GET("/users/signout")
         .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", accessToken));
@@ -324,6 +319,6 @@ public class UserControllerTest {
     assertThat((CharSequence) signUpResponse.getStatus()).isEqualTo(HttpStatus.CREATED);
     assertThat((CharSequence) signInResponse.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(signInResponse.body()).isNotNull();
-    assertThat(signInResponse.body()).contains("access_token");
+    assertThat(signInResponse.body()).contains("token");
   }
 }

@@ -12,14 +12,27 @@ public class JsonResponse {
    *
    * @param reasonCode Error reason code
    * @param reasonText Error reason text message
-   *
    * @return stringified JSON-based response
    */
-  public static String createError(Integer reasonCode, String reasonText) {
+  public static String getErrorMessage(Integer reasonCode, String reasonText) {
     final JSONObject jsonResponse = new JSONObject();
 
     jsonResponse.put("reason_code", reasonCode);
     jsonResponse.put("reason_text", reasonText);
+
+    return jsonResponse.toJSONString();
+  }
+
+  /**
+   * Method to generate JSON string with token.
+   *
+   * @param token token to be placed in json
+   * @return json with token
+   */
+  public static String getTokenMessage(String token) {
+    final JSONObject jsonResponse = new JSONObject();
+
+    jsonResponse.put("token", token);
 
     return jsonResponse.toJSONString();
   }
