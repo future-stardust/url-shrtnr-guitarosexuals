@@ -57,8 +57,8 @@ public class UrlController {
    * Entrypoint for shortening urls.
    *
    * @param shortenData json (url, alias: optional)
-   * @return  201 Created - returns shortened_url
-   *          400 Bad Request - if shorten data is wrong
+   * @return  201 Created - returns shortened_url<br>
+   *          400 Bad Request - if shorten data is wrong<br>
    *          401 Unauthorized - if user is not authorized
    */
   @Post(value = "/shorten", consumes = MediaType.APPLICATION_JSON)
@@ -124,18 +124,14 @@ public class UrlController {
   /**
    * Entrypoint for getting user's url array.
    *
-   * @return user's url array
+   * @return  200 OK - returns array with user's URL<br>
+   *          401 Unauthorized - if user is not authorized
    */
   @Get
   public HttpResponse<Object> getUserUrls(Principal principal) {
     String userEmail = principal.getName();
 
-    User user;
-    try {
-      user = userRepository.getByEmail(userEmail);
-    } catch (NotFound exc) {
-      return HttpResponse.unauthorized();
-    }
+    User user = userRepository.getByEmail(userEmail);
 
     JSONObject jsonResponse = new JSONObject();
     jsonResponse.put("urls", urlRepository.searchByUserId(user.id()));

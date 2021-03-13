@@ -27,7 +27,8 @@ public class RedirectController {
    * Entrypoint for redirecting to a Alias.
    *
    * @param alias alias
-   * @return OK/error
+   * @return  301 Moved Permanently - redirect to url<br>
+   *          404 Not Found - if alias was not found
    */
   @Get(value = "/{alias}")
   public HttpResponse<Object> redirect(@QueryValue String alias) throws URISyntaxException {

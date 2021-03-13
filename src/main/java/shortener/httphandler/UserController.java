@@ -16,7 +16,6 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.UsernamePasswordCredentials;
 import io.micronaut.security.rules.SecurityRule;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
@@ -50,7 +49,7 @@ public class UserController {
    *
    * @param userData user email and password
    * @return  200 OK - access token<br>
-   *          400 Bad Request - if credentials are wrong
+   *          400 Bad Request - if credentials are wrong<br>
    *          404 Not Found - if user not found
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
@@ -136,28 +135,19 @@ public class UserController {
    * Sign out endpoint. Provides user logout from the system
    *
    * @param httpHeaders HTTP headers reference
-   * @return  200 if user logged out<br>
-   *          500 if something went wrong with token
+   * @return  200 OK - log out<br>
+   *          401 Unauthorized - if user is not authorized
    */
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Get(value = "/signout")
   public HttpResponse<String> signOut(HttpHeaders httpHeaders) {
-    Optional<String> authorizationHeaderOptional = httpHeaders.getAuthorization();
+    String authorizationHeaderOptional = httpHeaders.getAuthorization().get();
 
-    if (authorizationHeaderOptional.isPresent()) {
-      String accessToken = authorizationHeaderOptional.get().replace(
-          "Bearer ",
-          ""
-      );
-      userSessionRepository.delete(accessToken);
-      return HttpResponse.ok("Successfully signed out.");
-    }
-
-    String jsonResponse = JsonResponse.getErrorMessage(
-        0,
-        "An error occurred while trying to sign out."
+    String accessToken = authorizationHeaderOptional.replace(
+        "Bearer ",
+        ""
     );
-
-    return HttpResponse.serverError(jsonResponse);
+    userSessionRepository.delete(accessToken);
+    return HttpResponse.ok("Successfully signed out.");
   }
 }
