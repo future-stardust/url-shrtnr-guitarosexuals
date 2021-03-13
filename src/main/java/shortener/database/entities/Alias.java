@@ -11,5 +11,5 @@ public record Alias(String alias,
                     Long userId,
                     Integer usages) {
 
-  public static final Integer DEFAULT_RANDOM_ALIAS_LENGTH = 5;
+  public static final Integer ALIAS_LENGTH_DEFAULT = 5;
 }

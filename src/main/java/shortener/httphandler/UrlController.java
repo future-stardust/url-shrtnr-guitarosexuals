@@ -72,7 +72,7 @@ public class UrlController {
     // Create alias records and check for its uniqueness
     if (alias == null || alias.isBlank()) {
       try {
-        String randomAlias = RandomStringGenerator.generate(Alias.DEFAULT_RANDOM_ALIAS_LENGTH);
+        String randomAlias = RandomStringGenerator.generate(Alias.ALIAS_LENGTH_DEFAULT);
 
         db.create(db.aliasTable, new Alias(randomAlias, url, userId, 0));
       } catch (UniqueViolation e) {
