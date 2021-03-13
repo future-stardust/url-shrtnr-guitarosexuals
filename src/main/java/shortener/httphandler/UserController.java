@@ -50,14 +50,15 @@ public class UserController {
    *
    * @param userData user email and password
    * @return  200 OK - access token<br>
-   *          401 Unauthorized - if credentials are wrong or user not found
+   *          400 Bad Request - if credentials are wrong
+   *          404 Not Found - if user not found
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signin", consumes = MediaType.APPLICATION_JSON)
   public HttpResponse<?> signIn(@Body UserData userData) {
     if (userData.email() == null || userData.email().isBlank()
         || userData.password() == null || userData.password().isBlank()) {
-      return HttpResponse.unauthorized().body("Credentials should not be empty.");
+      return HttpResponse.badRequest("Credentials should not be empty.");
     }
     UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
         userData.email(),
@@ -70,7 +71,11 @@ public class UserController {
     try {
       body = client.retrieve(request, String.class).blockingFirst();
     } catch (HttpClientResponseException e) {
-      return HttpResponse.unauthorized().body(e.getMessage());
+      if (e.getMessage().equals("User Not Found")) {
+        return HttpResponse.notFound(e.getMessage());
+      }
+
+      return HttpResponse.badRequest(e.getMessage());
     }
     String token = JsonParser.parseString(body).getAsJsonObject().get("access_token").getAsString();
 

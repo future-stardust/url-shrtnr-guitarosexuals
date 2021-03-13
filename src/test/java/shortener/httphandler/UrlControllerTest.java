@@ -287,10 +287,9 @@ public class UrlControllerTest {
         String.class
     );
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    Assertions.assertEquals(objectMapper.writeValueAsString(Collections.singletonList(alias)),
-        response.body());
+    assertThat(response.body()).contains(alias.alias());
+    assertThat(response.body()).contains(alias.url());
+    assertThat(response.body()).contains(alias.userId().toString());
   }
 
   @Test

@@ -1,5 +1,6 @@
 package shortener.httphandler;
 
+import com.nimbusds.jose.shaded.json.JSONObject;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
@@ -110,7 +111,10 @@ public class UrlController {
       return HttpResponse.unauthorized();
     }
 
-    return HttpResponse.ok(urlRepository.searchByUserId(user.id()));
+    JSONObject jsonResponse = new JSONObject();
+    jsonResponse.put("urls", urlRepository.searchByUserId(user.id()));
+
+    return HttpResponse.ok(jsonResponse);
   }
 
   /**
