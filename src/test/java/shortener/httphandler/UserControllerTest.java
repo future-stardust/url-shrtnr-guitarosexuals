@@ -2,7 +2,7 @@ package shortener.httphandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
@@ -12,16 +12,15 @@ import io.micronaut.http.client.RxHttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
-import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
-import java.util.Objects;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import shortener.httphandler.utils.JsonResponse;
 import org.mockito.Mockito;
 import shortener.database.entities.User;
 import shortener.database.entities.UserSession;
@@ -35,7 +34,6 @@ import shortener.users.protection.HashFunction;
 @TestInstance(Lifecycle.PER_CLASS)
 public class UserControllerTest {
 
-  Gson gson = new Gson();
   @Inject
   EmbeddedServer embeddedServer;
   @Inject
@@ -74,7 +72,7 @@ public class UserControllerTest {
 
     var userData = new UserData("newuser@mail.com", "Passwd2021");
 
-    HttpRequest<String> request = HttpRequest.POST("/users/signup", gson.toJson(userData));
+    HttpRequest<UserData> request = HttpRequest.POST("/users/signup", userData);
     HttpResponse<String> response = client.toBlocking().exchange(request);
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
@@ -87,8 +85,8 @@ public class UserControllerTest {
 
     var emptyUser = new UserData("", "");
 
-    HttpRequest<String> emptyUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(emptyUser));
+    HttpRequest<UserData> emptyUserRequest = HttpRequest
+        .POST("/users/signup", emptyUser);
 
     // TODO: improve 4xx code response checking (e.g. status code check)
     Throwable emptyUserException = Assertions.assertThrows(
@@ -99,15 +97,21 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(emptyUserException.getMessage()).contains("Credentials should not be empty");
+
+    String jsonResponse = JsonResponse.getErrorMessage(
+        0,
+        "Credentials should not be empty."
+    );
+
+    assertThat(emptyUserException.getMessage()).contains(jsonResponse);
   }
 
   @Test
   void signUpWithWrongEmail() {
     var wrongMailUser = new UserData("wrongmail", "Passwd2021");
 
-    HttpRequest<String> wrongMailUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(wrongMailUser));
+    HttpRequest<UserData> wrongMailUserRequest = HttpRequest
+        .POST("/users/signup", wrongMailUser);
 
     Throwable wrongMailUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -128,8 +132,8 @@ public class UserControllerTest {
 
     var existingUser = new UserData("test@mail.com", "Passwd123");
 
-    HttpRequest<String> emptyUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(existingUser));
+    HttpRequest<UserData> emptyUserRequest = HttpRequest
+        .POST("/users/signup", existingUser);
 
     // TODO: improve 4xx code response checking (e.g. status code check)
     Throwable emptyUserException = Assertions.assertThrows(
@@ -140,15 +144,21 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(emptyUserException.getMessage()).contains("has already been registered");
+
+    String jsonResponse = JsonResponse.getErrorMessage(
+        2,
+        String.format("User %s has already been registered.", existingUser.email())
+    );
+
+    Assertions.assertEquals(emptyUserException.getMessage(), jsonResponse);
   }
 
   @Test
   void signUpWithWeakPassword() {
     var wrongPasswordUser = new UserData("user@mail.com", "pass");
 
-    HttpRequest<String> wrongPasswordUserRequest = HttpRequest
-        .POST("/users/signup", gson.toJson(wrongPasswordUser));
+    HttpRequest<UserData> wrongPasswordUserRequest = HttpRequest
+        .POST("/users/signup", wrongPasswordUser);
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -158,15 +168,21 @@ public class UserControllerTest {
             Argument.of(String.class)
         )
     );
-    assertThat(wrongPasswordUserException.getMessage()).contains("Password");
+
+    String jsonResponse = JsonResponse.getErrorMessage(
+        0,
+        "Password must be at least 8 characters long."
+    );
+
+    assertThat(wrongPasswordUserException.getMessage()).contains(jsonResponse);
   }
 
   @Test
   void signInWithCorrectCredentials() {
     var user = new UserData("test@mail.com", "CoolPasswd123");
 
-    HttpRequest<String> request = HttpRequest
-        .POST("/users/signin", gson.toJson(user));
+    HttpRequest<UserData> request = HttpRequest
+        .POST("/users/signin", user);
 
     HttpResponse<String> response = client.toBlocking().exchange(
         request,
@@ -175,15 +191,15 @@ public class UserControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("access_token");
+    assertThat(response.body()).contains("token");
   }
 
   @Test
   void signInWithWrongPassword() {
     var wrongPasswdUser = new UserData("test@mail.com", "WrongPasswd");
 
-    HttpRequest<String> request = HttpRequest
-        .POST("/users/signin", gson.toJson(wrongPasswdUser));
+    HttpRequest<UserData> request = HttpRequest
+        .POST("/users/signin", wrongPasswdUser);
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -200,15 +216,11 @@ public class UserControllerTest {
   void signOutWithAuthorization() {
     var validUser = new UserData("test@mail.com", "CoolPasswd123");
 
-    HttpRequest<String> signInRequest = HttpRequest
-        .POST("/users/signin", gson.toJson(validUser));
+    HttpRequest<UserData> signInRequest = HttpRequest.POST("/users/signin", validUser);
+    String signInResponseBody = client.toBlocking().retrieve(signInRequest);
 
-    HttpResponse<BearerAccessRefreshToken> signInResponse = client.toBlocking().exchange(
-        signInRequest,
-        BearerAccessRefreshToken.class
-    );
-
-    final String accessToken = Objects.requireNonNull(signInResponse.body()).getAccessToken();
+    final String accessToken = JsonParser.parseString(signInResponseBody)
+        .getAsJsonObject().get("token").getAsString();
 
     HttpRequest<Object> signOutRequest = HttpRequest.GET("/users/signout")
         .header(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", accessToken));
@@ -220,7 +232,7 @@ public class UserControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("Successfully logged out");
+    assertThat(response.body()).contains("Successfully signed out");
   }
 
   @Test
@@ -230,8 +242,8 @@ public class UserControllerTest {
 
     var wrongPasswdUser = new UserData("nonexistent@mail.com", "Passwd123");
 
-    HttpRequest<String> request = HttpRequest
-        .POST("/users/signin", gson.toJson(wrongPasswdUser));
+    HttpRequest<UserData> request = HttpRequest
+        .POST("/users/signin", wrongPasswdUser);
 
     Throwable wrongPasswordUserException = Assertions.assertThrows(
         HttpClientResponseException.class,
@@ -293,11 +305,11 @@ public class UserControllerTest {
 
     var user = new UserData("anotheruser@mail.com", "CoolPasswd123");
 
-    HttpRequest<String> signUpRequest = HttpRequest.POST("/users/signup", gson.toJson(user));
+    HttpRequest<UserData> signUpRequest = HttpRequest.POST("/users/signup", user);
     HttpResponse<String> signUpResponse = client.toBlocking().exchange(signUpRequest);
 
-    HttpRequest<String> signInRequest = HttpRequest
-        .POST("/users/signin", gson.toJson(user));
+    HttpRequest<UserData> signInRequest = HttpRequest
+        .POST("/users/signin", user);
 
     HttpResponse<String> signInResponse = client.toBlocking().exchange(
         signInRequest,
@@ -307,9 +319,6 @@ public class UserControllerTest {
     assertThat((CharSequence) signUpResponse.getStatus()).isEqualTo(HttpStatus.CREATED);
     assertThat((CharSequence) signInResponse.getStatus()).isEqualTo(HttpStatus.OK);
     assertThat(signInResponse.body()).isNotNull();
-    assertThat(signInResponse.body()).contains("access_token");
-  }
-
-  record UserData(String email, String password) {
+    assertThat(signInResponse.body()).contains("token");
   }
 }

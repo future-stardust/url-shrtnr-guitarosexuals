@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonParser;
 import io.micronaut.core.type.Argument;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -13,7 +14,6 @@ import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.server.EmbeddedServer;
-import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.annotation.MockBean;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.util.Collections;
@@ -26,6 +26,7 @@ import shortener.database.entities.Alias;
 import shortener.database.entities.User;
 import shortener.database.entities.UserSession;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.JsonResponse;
 import shortener.httphandler.utils.ShortenData;
 import shortener.urls.UrlRepository;
 import shortener.users.UserRepository;
@@ -88,12 +89,9 @@ public class UrlControllerTest {
     );
 
     HttpRequest<UserData> request = HttpRequest.POST("/users/signin", userData);
-    HttpResponse<BearerAccessRefreshToken> response = client.toBlocking()
-        .exchange(request, BearerAccessRefreshToken.class);
+    String responseBody = client.toBlocking().retrieve(request);
 
-    BearerAccessRefreshToken bearerAccessRefreshToken = response.body();
-    assert bearerAccessRefreshToken != null;
-    token = bearerAccessRefreshToken.getAccessToken();
+    token = JsonParser.parseString(responseBody).getAsJsonObject().get("token").getAsString();
   }
 
   @Test
@@ -116,7 +114,7 @@ public class UrlControllerTest {
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
     assertThat(response.body()).isNotNull();
-    assertThat(response.body()).contains("URL successfully shortened");
+    assertThat(response.body()).contains("shortened_url");
   }
 
   @Test
@@ -138,7 +136,7 @@ public class UrlControllerTest {
     );
 
     assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.CREATED);
-    assertThat(response.body()).contains("URL successfully shortened");
+    assertThat(response.body()).contains("shortened_url");
   }
 
   @Test
@@ -163,8 +161,12 @@ public class UrlControllerTest {
         )
     );
 
-    // check prefix
-    assertThat(emptyDataException.getMessage()).startsWith("Invalid data:");
+    String jsonResponse = JsonResponse.getErrorMessage(
+        0,
+        "Invalid data: \"url\" parameter should not be empty"
+    );
+
+    assertThat(emptyDataException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -180,7 +182,7 @@ public class UrlControllerTest {
 
     HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
 
-    Throwable emptyDataException = Assertions.assertThrows(
+    Throwable wrongUrlException = Assertions.assertThrows(
         HttpClientResponseException.class,
         () -> client.toBlocking().exchange(
             requestWithAuth,
@@ -189,7 +191,12 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).startsWith("Invalid URL: ");
+    String jsonResponse = JsonResponse.getErrorMessage(
+        1,
+        "Invalid data: url should be http/https valid"
+    );
+
+    assertThat(wrongUrlException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -205,7 +212,7 @@ public class UrlControllerTest {
 
     HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
 
-    Throwable emptyDataException = Assertions.assertThrows(
+    Throwable wrongUrlException = Assertions.assertThrows(
         HttpClientResponseException.class,
         () -> client.toBlocking().exchange(
             requestWithAuth,
@@ -214,7 +221,12 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).startsWith("Invalid URL: ");
+    String jsonResponse = JsonResponse.getErrorMessage(
+        1,
+        "Invalid data: url should be http/https valid"
+    );
+
+    assertThat(wrongUrlException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -234,7 +246,7 @@ public class UrlControllerTest {
 
     HttpRequest<ShortenData> requestWithAuth = HttpRequest.POST(uri, shortenData).bearerAuth(token);
 
-    Throwable emptyDataException = Assertions.assertThrows(
+    Throwable localUrlException = Assertions.assertThrows(
         HttpClientResponseException.class,
         () -> client.toBlocking().exchange(
             requestWithAuth,
@@ -243,9 +255,12 @@ public class UrlControllerTest {
         )
     );
 
-    Assertions.assertEquals(
-        "Invalid data: Local URLs are not allowed", emptyDataException.getMessage()
+    String jsonResponse = JsonResponse.getErrorMessage(
+        1,
+        "Invalid data: Local URLs are not allowed"
     );
+
+    assertThat(localUrlException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -271,7 +286,13 @@ public class UrlControllerTest {
         )
     );
 
-    assertThat(emptyDataException.getMessage()).contains("Specified alias is taken");
+
+    String jsonResponse = JsonResponse.getErrorMessage(
+        2,
+        "Specified alias is already taken"
+    );
+
+    assertThat(emptyDataException.getMessage()).contains(jsonResponse);
   }
 
   @Test
@@ -290,10 +311,9 @@ public class UrlControllerTest {
         String.class
     );
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    Assertions.assertEquals(objectMapper.writeValueAsString(Collections.singletonList(alias)),
-        response.body());
+    assertThat(response.body()).contains(alias.alias());
+    assertThat(response.body()).contains(alias.url());
+    assertThat(response.body()).contains(alias.userId().toString());
   }
 
   @Test
@@ -311,12 +331,10 @@ public class UrlControllerTest {
 
     MutableHttpRequest<Object> requestWithAuth = HttpRequest.DELETE(uri).bearerAuth(token);
 
-    String response = client.toBlocking()
-        .retrieve(requestWithAuth);
+    HttpResponse<String> response = client.toBlocking().exchange(requestWithAuth);
 
-    ObjectMapper objectMapper = new ObjectMapper();
-
-    Assertions.assertEquals(response, objectMapper.writeValueAsString(aliasToDelete));
+    assertThat(response.body()).isNull();
+    assertThat((CharSequence) response.getStatus()).isEqualTo(HttpStatus.NO_CONTENT);
   }
 
 

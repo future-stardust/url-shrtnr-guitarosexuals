@@ -1,5 +1,6 @@
 package shortener.httphandler;
 
+import com.google.gson.JsonParser;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -15,11 +16,11 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.authentication.UsernamePasswordCredentials;
 import io.micronaut.security.rules.SecurityRule;
-import java.util.Optional;
 import javax.inject.Inject;
 import javax.validation.constraints.Email;
 import shortener.exceptions.auth.InvalidCredentials;
 import shortener.exceptions.database.UniqueViolation;
+import shortener.httphandler.utils.JsonResponse;
 import shortener.httphandler.utils.UserDataValidator;
 import shortener.users.UserRepository;
 import shortener.users.UserSessionRepository;
@@ -48,14 +49,15 @@ public class UserController {
    *
    * @param userData user email and password
    * @return  200 OK - access token<br>
-   *          401 Unauthorized - if credentials are wrong or user not found
+   *          400 Bad Request - if credentials are wrong<br>
+   *          404 Not Found - if user not found
    */
   @Secured(SecurityRule.IS_ANONYMOUS)
   @Post(value = "/signin", consumes = MediaType.APPLICATION_JSON)
   public HttpResponse<?> signIn(@Body UserData userData) {
     if (userData.email() == null || userData.email().isBlank()
         || userData.password() == null || userData.password().isBlank()) {
-      return HttpResponse.unauthorized().body("Credentials should not be empty.");
+      return HttpResponse.badRequest("Credentials should not be empty.");
     }
     UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
         userData.email(),
@@ -64,11 +66,19 @@ public class UserController {
 
     HttpRequest<UsernamePasswordCredentials> request = HttpRequest.POST("/login", credentials);
 
+    String body;
     try {
-      return client.exchange(request, String.class).blockingFirst();
+      body = client.retrieve(request, String.class).blockingFirst();
     } catch (HttpClientResponseException e) {
-      return HttpResponse.unauthorized().body(e.getMessage());
+      if (e.getMessage().equals("User Not Found")) {
+        return HttpResponse.notFound(e.getMessage());
+      }
+
+      return HttpResponse.badRequest(e.getMessage());
     }
+    String token = JsonParser.parseString(body).getAsJsonObject().get("access_token").getAsString();
+
+    return HttpResponse.ok(JsonResponse.getTokenMessage(token));
   }
 
   /**
@@ -84,7 +94,12 @@ public class UserController {
   public HttpResponse<String> signUp(@Body UserData userData) {
     if (userData.email() == null || userData.email().isBlank()
         || userData.password() == null || userData.password().isBlank()) {
-      return HttpResponse.badRequest("Credentials should not be empty.");
+      String jsonResponse = JsonResponse.getErrorMessage(
+          0,
+          "Credentials should not be empty."
+      );
+
+      return HttpResponse.badRequest(jsonResponse);
     }
 
     final @Email String userEmail = userData.email();
@@ -94,38 +109,45 @@ public class UserController {
       UserDataValidator.validateEmail(userEmail);
       UserDataValidator.validatePassword(userPassword);
     } catch (InvalidCredentials e) {
-      return HttpResponse.badRequest(e.getMessage());
+      String jsonResponse = JsonResponse.getErrorMessage(
+          0,
+          e.getMessage()
+      );
+
+      return HttpResponse.badRequest(jsonResponse);
     }
 
     try {
       userRepository.create(userEmail, userPassword);
     } catch (UniqueViolation exc) {
-      return HttpResponse.status(HttpStatus.CONFLICT).body(
-          String.format("User %s has already been registered", userEmail)
+      String jsonResponse = JsonResponse.getErrorMessage(
+          2,
+          String.format("User %s has already been registered.", userEmail)
       );
+
+      return HttpResponse.status(HttpStatus.CONFLICT).body(jsonResponse);
     }
 
-    return HttpResponse.created("User successfully registered");
+    return HttpResponse.created("User was successfully registered.");
   }
 
   /**
    * Sign out endpoint. Provides user logout from the system
    *
    * @param httpHeaders HTTP headers reference
-   * @return  200 if user logged out<br>
-   *          500 if something went wrong with token
+   * @return  200 OK - log out<br>
+   *          401 Unauthorized - if user is not authorized
    */
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Get(value = "/signout")
   public HttpResponse<String> signOut(HttpHeaders httpHeaders) {
-    Optional<String> authorizationHeaderOptional = httpHeaders.getAuthorization();
+    String authorizationHeaderOptional = httpHeaders.getAuthorization().get();
 
-    if (authorizationHeaderOptional.isPresent()) {
-      String accessToken = authorizationHeaderOptional.get().replace("Bearer ", "");
-      userSessionRepository.delete(accessToken);
-      return HttpResponse.ok("Successfully logged out");
-    }
-
-    return HttpResponse.serverError("An error occurred while trying to sign out.");
+    String accessToken = authorizationHeaderOptional.replace(
+        "Bearer ",
+        ""
+    );
+    userSessionRepository.delete(accessToken);
+    return HttpResponse.ok("Successfully signed out.");
   }
 }
