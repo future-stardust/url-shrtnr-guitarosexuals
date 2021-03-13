@@ -17,7 +17,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    *
    * @return Array of all found records.
    */
-  List<EntityT> search() throws IOException;
+  List<EntityT> search();
 
   //  /**
   //   * Lists all records of a collection.
@@ -34,7 +34,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    * @return Found record.
    * @throws NotFound Thrown if no element found by given `pk`.
    */
-  EntityT get(PrimaryKeyT pk) throws NotFound, IOException;
+  EntityT get(PrimaryKeyT pk) throws NotFound;
 
   /**
    * Method responsible for inserting a record to into a table.
@@ -43,7 +43,7 @@ public interface Repository<EntityT, PrimaryKeyT> {
    * @return Created record.
    * @throws UniqueViolation Thrown if there is an existing record with same pk found.
    */
-  EntityT create(EntityT record) throws UniqueViolation, IOException;
+  EntityT create(EntityT record) throws UniqueViolation;
 
   /**
    * Removes a record by a given primary key value.

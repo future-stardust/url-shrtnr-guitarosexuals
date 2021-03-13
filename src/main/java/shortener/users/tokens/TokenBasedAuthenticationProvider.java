@@ -52,7 +52,7 @@ public class TokenBasedAuthenticationProvider implements AuthenticationProvider 
 
     return Flowable.create(emitter -> {
       try {
-        final String userPassword = userRepository.getUserPassword(entryEmail);
+        final String userPassword = userRepository.getByEmail(entryEmail).password();
         final String hashedEntryPassword = HashFunction.hashOut(entryPassword, entryEmail);
 
         if (Objects.equals(hashedEntryPassword, userPassword)) {

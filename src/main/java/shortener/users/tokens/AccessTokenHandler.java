@@ -8,6 +8,7 @@ import io.micronaut.security.authentication.UserDetails;
 import io.micronaut.security.token.jwt.bearer.AccessRefreshTokenLoginHandler;
 import io.micronaut.security.token.jwt.generator.AccessRefreshTokenGenerator;
 import io.micronaut.security.token.jwt.render.AccessRefreshToken;
+import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -28,6 +29,7 @@ public class AccessTokenHandler extends AccessRefreshTokenLoginHandler {
 
   @Inject
   UserRepository userRepository;
+
   @Inject
   UserSessionRepository userSessionRepository;
 
@@ -55,8 +57,14 @@ public class AccessTokenHandler extends AccessRefreshTokenLoginHandler {
         .generate(userDetails);
 
     if (accessRefreshTokenOptional.isPresent()) {
-      User servicedUser = userRepository.get(userDetails.getUsername());
+      User servicedUser = userRepository.getByEmail(userDetails.getUsername());
       String accessToken = accessRefreshTokenOptional.get().getAccessToken();
+
+      // Delete existing sessions
+      List<UserSession> sessions = userSessionRepository.searchByUserId(servicedUser.id());
+      sessions.forEach(session -> {
+        userSessionRepository.delete(session.token());
+      });
 
       userSessionRepository.create(new UserSession(servicedUser.id(), accessToken));
 
@@ -64,6 +72,6 @@ public class AccessTokenHandler extends AccessRefreshTokenLoginHandler {
     }
 
     return HttpResponse.serverError(
-      "Failed to generate an access token for the user with the provided credentials.");
+        "Failed to generate an access token for the user with the provided credentials.");
   }
 }
