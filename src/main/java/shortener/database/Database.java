@@ -224,10 +224,12 @@ public class Database {
       Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
       String modifiedLines =
-          databaseTable.readTable().filter(line -> !lineRegex.matcher(line).matches())
+          databaseTable.readTable()
+              .filter(line -> !lineRegex.matcher(line).matches())
               .reduce((acc, line) -> acc + System.lineSeparator() + line).orElse("");
 
-      Files.write(databaseTable.getWritableFilePath(), modifiedLines.getBytes(),
+      Files.write(databaseTable.getWritableFilePath(),
+          (modifiedLines + System.lineSeparator()).getBytes(),
           StandardOpenOption.TRUNCATE_EXISTING);
 
       return record;
