@@ -76,7 +76,7 @@ public class AliasTable implements DatabaseTable<Alias, String> {
 
   @Override
   public String serialize(Alias record) {
-    return record.alias() + "|" + record.url() + "|" + record.userId() + "|" + record.usages();
+    return record.alias() + "|" + record.url() + "|" + record.userId();
   }
 
 
@@ -84,7 +84,6 @@ public class AliasTable implements DatabaseTable<Alias, String> {
   public Alias deserialize(String serialized) {
     String[] fields = serialized.split("\\|");
 
-    return new Alias(fields[0], fields[1], Long.parseLong(fields[2], 10),
-        Integer.parseInt(fields[3], 10));
+    return new Alias(fields[0], fields[1], Long.parseLong(fields[2], 10));
   }
 }
