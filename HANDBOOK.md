@@ -74,7 +74,6 @@ $ curl --location --request GET 'localhost:8080/urls/' \
         "alias": "example",
         "url": "https://google.com",
         "userId": 1,
-        "usages": 0
     }
 ]
 ```

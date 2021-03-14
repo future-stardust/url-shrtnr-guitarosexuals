@@ -57,7 +57,7 @@ public class RedirectControllerTest {
     final String url = "https://jsonplaceholder.typicode.com/todos/1";
 
     Mockito.when(urlRepository.get(Mockito.any()))
-        .thenReturn(new Alias("alias1", url, 1L, 0));
+        .thenReturn(new Alias("alias1", url, 1L));
 
     MutableHttpRequest<Object> request = HttpRequest.GET(String.format(urlPattern, "alias1"));
 

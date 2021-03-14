@@ -47,24 +47,24 @@ public class AliasTableTest {
 
   @Test
   void prepareRecordForCreationThrowsIfSimilarAliasExists() throws IOException {
-    Files.write(table.getWritableFilePath(), "test|https://example.com|1|0\n".getBytes(),
+    Files.write(table.getWritableFilePath(), "test|https://example.com|1\n".getBytes(),
         StandardOpenOption.APPEND);
 
     Assertions.assertThatThrownBy(() -> {
-      table.prepareRecordForCreation(new Alias("test", "https://example.com", 1L, 0));
+      table.prepareRecordForCreation(new Alias("test", "https://example.com", 1L));
     }).isInstanceOf(UniqueViolation.class);
   }
 
   @Test
   void serializeWorksCorrectly() {
-    Assertions.assertThat(table.serialize(new Alias("al", "https://example.com", 1L, 0)))
-        .isEqualTo("al|https://example.com|1|0");
+    Assertions.assertThat(table.serialize(new Alias("al", "https://example.com", 1L)))
+        .isEqualTo("al|https://example.com|1");
   }
 
   @Test
   void deserializeWorksCorrectly() {
-    Assertions.assertThat(table.deserialize("al|https://example.com|1|0"))
-        .isEqualTo(new Alias("al", "https://example.com", 1L, 0));
+    Assertions.assertThat(table.deserialize("al|https://example.com|1"))
+        .isEqualTo(new Alias("al", "https://example.com", 1L));
   }
 
 }

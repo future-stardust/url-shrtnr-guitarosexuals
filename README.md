@@ -47,7 +47,6 @@ We use [checkstyle] to ensure coding standards. We use Google rules (local copy 
 [JDK]: https://en.wikipedia.org/wiki/Java_Development_Kit
 [sdkman]: https://sdkman.io/
 [AdoptOpenJDK]: https://adoptopenjdk.net/
-[7 rules of good commit messages]: https://chris.beams.io/posts/git-commit/#seven-rules
 [checkstyle]: https://checkstyle.org/
 
 
