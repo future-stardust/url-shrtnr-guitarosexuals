@@ -160,9 +160,11 @@ public class UrlController {
         throw new NotFound("aliases", alias);
       }
 
+      urlRepository.delete(alias);
+
       return HttpResponse.noContent();
     } catch (NotFound exc) {
-      return HttpResponse.notFound("User ");
+      return HttpResponse.notFound();
     }
   }
 }

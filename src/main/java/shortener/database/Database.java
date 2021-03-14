@@ -95,7 +95,6 @@ public class Database {
     try {
       return databaseTable.readTable()
           .parallel()
-          .filter(line -> line != null && !line.isBlank())
           .map(databaseTable::deserialize)
           .collect(Collectors.toList());
     } catch (IOException exc) {
@@ -117,7 +116,6 @@ public class Database {
     try {
       return databaseTable.readTable()
           .parallel()
-          .filter(line -> line != null && !line.isBlank())
           .map(databaseTable::deserialize)
           .filter(predicate)
           .collect(Collectors.toList());
@@ -141,7 +139,6 @@ public class Database {
     try {
       return databaseTable.readTable()
           .parallel()
-          .filter(line -> line != null && !line.isBlank())
           .map(databaseTable::deserialize)
           .filter(predicate)
           .limit(limit)
@@ -227,10 +224,12 @@ public class Database {
       Pattern lineRegex = Pattern.compile("^" + pk + "\\|" + ".*", Pattern.CASE_INSENSITIVE);
 
       String modifiedLines =
-          databaseTable.readTable().filter(line -> !lineRegex.matcher(line).matches())
+          databaseTable.readTable()
+              .filter(line -> !lineRegex.matcher(line).matches())
               .reduce((acc, line) -> acc + System.lineSeparator() + line).orElse("");
 
-      Files.write(databaseTable.getWritableFilePath(), modifiedLines.getBytes(),
+      Files.write(databaseTable.getWritableFilePath(),
+          (modifiedLines + System.lineSeparator()).getBytes(),
           StandardOpenOption.TRUNCATE_EXISTING);
 
       return record;

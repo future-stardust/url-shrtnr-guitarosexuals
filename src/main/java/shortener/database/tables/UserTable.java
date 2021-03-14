@@ -77,7 +77,7 @@ public class UserTable implements DatabaseTable<User, Long> {
   @Override
   public Stream<String> readTable() throws IOException {
     // TODO: Add an overloaded method which would accept a pk as a hint for file selection.
-    return Files.lines(filePath);
+    return Files.lines(filePath).filter(line -> line != null && !line.isBlank());
   }
 
 
